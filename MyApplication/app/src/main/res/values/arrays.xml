@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="course_levels">
+        <item>Beginner</item>
+        <item>Intermediate</item>
+        <item>Advanced</item>
+        <item>All Levels</item>
+    </string-array>
+    
+    <string-array name="course_types">
+        <item>Hatha Yoga</item>
+        <item>Vinyasa Yoga</item>
+        <item>Ashtanga Yoga</item>
+        <item>Iyengar Yoga</item>
+        <item>Kundalini Yoga</item>
+        <item>Yin Yoga</item>
+        <item>Restorative Yoga</item>
+        <item>Power Yoga</item>
+        <item>Prenatal Yoga</item>
+        <item>Hot Yoga</item>
+        <item>Other</item>
+    </string-array>
+    
+    <string-array name="days_of_week">
+        <item>Monday</item>
+        <item>Tuesday</item>
+        <item>Wednesday</item>
+        <item>Thursday</item>
+        <item>Friday</item>
+        <item>Saturday</item>
+        <item>Sunday</item>
+    </string-array>
+</resources>
