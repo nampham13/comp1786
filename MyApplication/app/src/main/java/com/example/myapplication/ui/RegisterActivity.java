@@ -100,7 +100,7 @@ public class RegisterActivity extends AppCompatActivity {
         binding.progressBar.setVisibility(View.VISIBLE);
         
         // Create user object with creator ID
-        User user = new User(email, password, name, role, creatorUserId);
+        User user = new User(email, password, name, role);
         
         // Register user with Firebase
         firebaseAuthService.registerUser(user, new FirebaseAuthService.AuthCallback() {

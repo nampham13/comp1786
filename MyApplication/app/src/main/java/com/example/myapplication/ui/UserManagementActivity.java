@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
@@ -71,6 +73,11 @@ public class UserManagementActivity extends AppCompatActivity {
         userList = new ArrayList<>();
         userAdapter = new UserAdapter(userList, currentUserRole, currentUserId, 
                 new UserAdapter.UserActionListener() {
+                    @Override
+                    public void onUserClick(User user) {
+                        showUserDetailsDialog(user);
+                    }
+                    
                     @Override
                     public void onBanUser(User user) {
                         showBanUserDialog(user);
@@ -167,15 +174,8 @@ public class UserManagementActivity extends AppCompatActivity {
                     // Super admin can see all users
                     if (User.ROLE_SUPER_ADMIN.equals(currentUserRole)) {
                         userList.add(user);
-                    } 
-                    // Admin can see users they created and other customers
-                    else if (User.ROLE_ADMIN.equals(currentUserRole)) {
-                        if (user.getCreatedBy() == currentUserId || user.isCustomer()) {
-                            userList.add(user);
-                        }
                     }
                 }
-                
                 userAdapter.notifyDataSetChanged();
             }
             
@@ -205,12 +205,6 @@ public class UserManagementActivity extends AppCompatActivity {
                     continue;
                 }
                 userList.add(user);
-            } 
-            // Admin can see users they created and other customers
-            else if (User.ROLE_ADMIN.equals(currentUserRole)) {
-                if (user.getCreatedBy() == currentUserId || user.isCustomer()) {
-                    userList.add(user);
-                }
             }
         }
         
@@ -298,15 +292,26 @@ public class UserManagementActivity extends AppCompatActivity {
         String userType = user.isAdmin() ? "Admin" : "User";
         String message = "Are you sure you want to delete " + user.getName() + "? This action cannot be undone.";
         
-        // Add warning message if deleting an admin
+        // Add specific warning messages based on user role
         if (user.isAdmin()) {
             message += "\n\nWarning: Deleting an admin will remove all their account information and access privileges.";
+            
+            // Add additional warning for super admin
+            if (User.ROLE_SUPER_ADMIN.equals(currentUserRole)) {
+                message += "\n\nAs a Super Admin, you can delete any admin user.";
+            }
+        } else if (user.isCustomer()) {
+            message += "\n\nWarning: Deleting a customer will remove all their account information and booking history.";
+
         }
         
         new AlertDialog.Builder(this)
                 .setTitle("Delete " + userType)
                 .setMessage(message)
+                .setIcon(android.R.drawable.ic_dialog_alert)
                 .setPositiveButton("Delete", (dialog, which) -> {
+                    // Show progress and overlay before deletion
+                    showProgressOverlay();
                     deleteUser(user);
                 })
                 .setNegativeButton("Cancel", null)
@@ -314,6 +319,9 @@ public class UserManagementActivity extends AppCompatActivity {
     }
 
     private void deleteUser(User user) {
+        // Show deletion in progress
+        showProgressOverlay();
+        
         // First delete from Firebase if we have a Firebase UID
         if (user.getFirebaseUid() != null && !user.getFirebaseUid().isEmpty()) {
             // Delete the user document from Firestore
@@ -327,8 +335,15 @@ public class UserManagementActivity extends AppCompatActivity {
                 @Override
                 public void onFailure(String errorMessage) {
                     Log.e(TAG, "Failed to delete user from Firebase: " + errorMessage);
-                    // Try to delete from local database anyway
-                    completeUserDeletion(user);
+                    // Show error message
+                    runOnUiThread(() -> {
+                        hideProgressOverlay();
+                        showErrorDialog("Firebase Error", "Failed to delete user from Firebase: " + errorMessage + 
+                                "\n\nWould you like to try deleting from local database only?", () -> {
+                            // Try to delete from local database anyway
+                            completeUserDeletion(user);
+                        });
+                    });
                 }
             });
         } else {
@@ -337,19 +352,137 @@ public class UserManagementActivity extends AppCompatActivity {
         }
     }
     
+    private void showErrorDialog(String title, String message, Runnable onRetry) {
+        new AlertDialog.Builder(this)
+                .setTitle(title)
+                .setMessage(message)
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setPositiveButton("Yes", (dialog, which) -> {
+                    if (onRetry != null) {
+                        onRetry.run();
+                    }
+                })
+                .setNegativeButton("No", (dialog, which) -> {
+                    hideProgressOverlay();
+                })
+                .show();
+    }
+    
+    /**
+     * Show progress overlay during operations
+     */
+    private void showProgressOverlay() {
+        binding.overlayView.setVisibility(View.VISIBLE);
+        binding.progressBar.setVisibility(View.VISIBLE);
+    }
+    
+    /**
+     * Hide progress overlay after operations
+     */
+    private void hideProgressOverlay() {
+        binding.overlayView.setVisibility(View.GONE);
+        binding.progressBar.setVisibility(View.GONE);
+    }
+    
+    /**
+     * Show user details dialog when a user item is clicked
+     */
+    private void showUserDetailsDialog(User user) {
+        // Create a custom view for the dialog
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_user_details, null);
+        
+        // Find views in the dialog layout
+        TextView textViewName = dialogView.findViewById(R.id.textViewName);
+        TextView textViewEmail = dialogView.findViewById(R.id.textViewEmail);
+        TextView textViewRole = dialogView.findViewById(R.id.textViewRole);
+        TextView textViewStatus = dialogView.findViewById(R.id.textViewStatus);
+        Button buttonEdit = dialogView.findViewById(R.id.buttonEdit);
+        Button buttonDelete = dialogView.findViewById(R.id.buttonDelete);
+        
+        // Set user data to views
+        textViewName.setText(user.getName());
+        textViewEmail.setText(user.getEmail());
+        textViewRole.setText("Role: " + user.getRole());
+        textViewStatus.setText("Status: " + user.getStatus());
+        
+        // Create and show the dialog
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle("User Details")
+                .setView(dialogView)
+                .setPositiveButton("Close", null)
+                .create();
+        
+        dialog.show();
+        
+        // Set button click listeners
+        buttonEdit.setOnClickListener(v -> {
+            dialog.dismiss();
+            // TODO: Implement edit user functionality
+            Toast.makeText(this, "Edit user functionality not implemented yet", Toast.LENGTH_SHORT).show();
+        });
+        
+        buttonDelete.setOnClickListener(v -> {
+            dialog.dismiss();
+            showDeleteUserDialog(user);
+        });
+        
+        // Show/hide buttons based on permissions
+        boolean canEdit = false;
+        boolean canDelete = false;
+        
+        // Super admin can edit/delete any user except other super admins
+        if (User.ROLE_SUPER_ADMIN.equals(currentUserRole)) {
+            if (!user.isSuperAdmin()) {
+                canEdit = true;
+                canDelete = true;
+            }
+        }
+        else if (User.ROLE_ADMIN.equals(currentUserRole)) {
+            if (user.isCustomer()) {
+                canEdit = true;
+                canDelete = true;
+            } else if (user.isAdmin() && user.getId() != currentUserId) {
+                canDelete = true;
+            }
+        }
+        
+        // Set button visibility
+        buttonEdit.setVisibility(canEdit ? View.VISIBLE : View.GONE);
+        buttonDelete.setVisibility(canDelete ? View.VISIBLE : View.GONE);
+    }
+    
     private void completeUserDeletion(User user) {
         if (databaseHelper.deleteUser(user.getId())) {
-            String userType = user.isAdmin() ? "Admin" : "User";
-            Toast.makeText(this, userType + " deleted successfully", Toast.LENGTH_SHORT).show();
+            // Hide progress overlay
+            hideProgressOverlay();
             
-            // Log the action for audit purposes
-            if (user.isAdmin()) {
-                Log.i(TAG, "Admin user deleted: " + user.getName() + " (ID: " + user.getId() + 
-                      ", Email: " + user.getEmail() + ") by user ID: " + currentUserId);
+            String userType = user.isAdmin() ? "Admin" : "User";
+            String roleName = "";
+            
+            // Get more specific role name for the toast message
+            if (user.isSuperAdmin()) {
+                roleName = "Super Admin";
+            } else if (user.isAdmin()) {
+                roleName = "Admin";
+            } else if (user.isCustomer()) {
+                roleName = "Customer";
             }
             
+            // Show success message with role information
+            Toast.makeText(this, roleName + " " + user.getName() + " deleted successfully", Toast.LENGTH_SHORT).show();
+            
+            // Log the action for audit purposes
+            Log.i(TAG, userType + " deleted: " + user.getName() + " (ID: " + user.getId() + 
+                  ", Email: " + user.getEmail() + ", Role: " + user.getRole() + 
+                  ") by user ID: " + currentUserId + " with role: " + currentUserRole);
+            
+            // Reload the user list
             loadUsers();
         } else {
+            // Hide progress overlay
+            hideProgressOverlay();
+            
+            // Show error message
             Toast.makeText(this, "Failed to delete user from local database", Toast.LENGTH_SHORT).show();
         }
     }

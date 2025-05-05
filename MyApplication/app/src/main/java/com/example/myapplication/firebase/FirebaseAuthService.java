@@ -81,8 +81,6 @@ public class FirebaseAuthService {
         userData.put("name", user.getName());
         userData.put("role", user.getRole());
         userData.put("status", user.getStatus());
-        userData.put("createdBy", user.getCreatedBy());
-        
         firestore.collection(USERS_COLLECTION).document(uid)
                 .set(userData)
                 .addOnSuccessListener(aVoid -> {
@@ -153,12 +151,6 @@ public class FirebaseAuthService {
                                 callback.onFailure("Your account has been banned");
                                 return;
                             }
-                            
-                            // Get creator ID if available
-                            if (document.contains("createdBy")) {
-                                user.setCreatedBy(document.getLong("createdBy"));
-                            }
-                            
                             callback.onSuccess(user);
                         } else {
                             callback.onFailure("User data not found");
@@ -188,12 +180,6 @@ public class FirebaseAuthService {
                             user.setName(document.getString("name"));
                             user.setRole(document.getString("role"));
                             user.setStatus(document.getString("status"));
-                            
-                            // Get creator ID if available
-                            if (document.contains("createdBy")) {
-                                user.setCreatedBy(document.getLong("createdBy"));
-                            }
-                            
                             users.add(user);
                         }
                         callback.onSuccess(users);
@@ -224,12 +210,6 @@ public class FirebaseAuthService {
                             user.setName(document.getString("name"));
                             user.setRole(document.getString("role"));
                             user.setStatus(document.getString("status"));
-                            
-                            // Get creator ID if available
-                            if (document.contains("createdBy")) {
-                                user.setCreatedBy(document.getLong("createdBy"));
-                            }
-                            
                             callback.onSuccess(user);
                         } else {
                             callback.onFailure("User not found");

@@ -22,6 +22,8 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
     private UserActionListener actionListener;
 
     public interface UserActionListener {
+        void onUserClick(User user);
+
         void onBanUser(User user);
         void onActivateUser(User user);
         void onDeleteUser(User user);
@@ -44,14 +46,21 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
     @Override
     public void onBindViewHolder(@NonNull UserViewHolder holder, int position) {
         User user = userList.get(position);
-        
+
         holder.textViewName.setText(user.getName());
         holder.textViewEmail.setText(user.getEmail());
         holder.textViewRole.setText("Role: " + user.getRole());
         holder.textViewStatus.setText("Status: " + user.getStatus());
-        
+
         // Configure action buttons based on user role and status
         configureActionButtons(holder, user);
+
+        // Set click listener for the whole user item (card)
+        holder.itemView.setOnClickListener(v -> {
+            if (actionListener != null) {
+                actionListener.onUserClick(user);
+            }
+        });
     }
 
     private void configureActionButtons(UserViewHolder holder, User user) {
@@ -59,39 +68,52 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
         holder.buttonBan.setVisibility(View.GONE);
         holder.buttonActivate.setVisibility(View.GONE);
         holder.buttonDelete.setVisibility(View.GONE);
-        
+
         // Don't allow actions on self
         if (user.getId() == currentUserId) {
             return;
         }
-        
-        // Super admin can manage all users except other super admins
+
+        // Super Admin can manage all users
         if (User.ROLE_SUPER_ADMIN.equals(currentUserRole)) {
+            // Super admin can manage all users except other super admins
             if (!user.isSuperAdmin()) {
                 if (user.isActive()) {
                     holder.buttonBan.setVisibility(View.VISIBLE);
                 } else {
                     holder.buttonActivate.setVisibility(View.VISIBLE);
                 }
-                holder.buttonDelete.setVisibility(View.VISIBLE);
-            }
-        } 
-        // Admin can only manage customers they created
-        else if (User.ROLE_ADMIN.equals(currentUserRole)) {
-            if (user.isCustomer() && user.getCreatedBy() == currentUserId) {
-                if (user.isActive()) {
-                    holder.buttonBan.setVisibility(View.VISIBLE);
-                } else {
-                    holder.buttonActivate.setVisibility(View.VISIBLE);
-                }
+                // Super admin can delete any user except other super admins
                 holder.buttonDelete.setVisibility(View.VISIBLE);
             }
         }
-        
+        // Admin can manage customers they created and other admins
+        else if (User.ROLE_ADMIN.equals(currentUserRole)) {
+            // Admins can no longer manage customers (no createdBy logic)
+            // Admin can delete other admins but cannot ban/activate them
+            if (user.isAdmin()) {
+                holder.buttonDelete.setVisibility(View.VISIBLE);
+            }
+        }
+
         // Set click listeners
-        holder.buttonBan.setOnClickListener(v -> actionListener.onBanUser(user));
-        holder.buttonActivate.setOnClickListener(v -> actionListener.onActivateUser(user));
-        holder.buttonDelete.setOnClickListener(v -> actionListener.onDeleteUser(user));
+        holder.buttonBan.setOnClickListener(v -> {
+            if (actionListener != null) {
+                actionListener.onBanUser(user);
+            }
+        });
+
+        holder.buttonActivate.setOnClickListener(v -> {
+            if (actionListener != null) {
+                actionListener.onActivateUser(user);
+            }
+        });
+
+        holder.buttonDelete.setOnClickListener(v -> {
+            if (actionListener != null) {
+                actionListener.onDeleteUser(user);
+            }
+        });
     }
 
     @Override

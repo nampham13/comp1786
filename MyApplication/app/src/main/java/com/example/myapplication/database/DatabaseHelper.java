@@ -163,7 +163,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             values.put(KEY_USER_NAME, user.getName());
             values.put(KEY_USER_ROLE, user.getRole());
             values.put(KEY_USER_STATUS, user.getStatus() != null ? user.getStatus() : User.STATUS_ACTIVE);
-            values.put(KEY_USER_CREATED_BY, user.getCreatedBy());
             
             userId = db.insertOrThrow(TABLE_USERS, null, values);
             db.setTransactionSuccessful();
@@ -196,11 +195,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 // Get new fields
                 try {
                     user.setStatus(cursor.getString(cursor.getColumnIndexOrThrow(KEY_USER_STATUS)));
-                    user.setCreatedBy(cursor.getLong(cursor.getColumnIndexOrThrow(KEY_USER_CREATED_BY)));
                 } catch (Exception e) {
                     // Handle case where columns might not exist in older database versions
                     user.setStatus(User.STATUS_ACTIVE);
-                    user.setCreatedBy(0);
                 }
                 
                 // Check if user is banned
@@ -240,11 +237,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 // Get new fields
                 try {
                     user.setStatus(cursor.getString(cursor.getColumnIndexOrThrow(KEY_USER_STATUS)));
-                    user.setCreatedBy(cursor.getLong(cursor.getColumnIndexOrThrow(KEY_USER_CREATED_BY)));
                 } catch (Exception e) {
                     // Handle case where columns might not exist in older database versions
                     user.setStatus(User.STATUS_ACTIVE);
-                    user.setCreatedBy(0);
                 }
             }
         } catch (Exception e) {
@@ -278,11 +273,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 // Get new fields
                 try {
                     user.setStatus(cursor.getString(cursor.getColumnIndexOrThrow(KEY_USER_STATUS)));
-                    user.setCreatedBy(cursor.getLong(cursor.getColumnIndexOrThrow(KEY_USER_CREATED_BY)));
                 } catch (Exception e) {
                     // Handle case where columns might not exist in older database versions
                     user.setStatus(User.STATUS_ACTIVE);
-                    user.setCreatedBy(0);
                 }
             }
         } catch (Exception e) {
@@ -317,11 +310,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     // Get new fields
                     try {
                         user.setStatus(cursor.getString(cursor.getColumnIndexOrThrow(KEY_USER_STATUS)));
-                        user.setCreatedBy(cursor.getLong(cursor.getColumnIndexOrThrow(KEY_USER_CREATED_BY)));
                     } catch (Exception e) {
                         // Handle case where columns might not exist in older database versions
                         user.setStatus(User.STATUS_ACTIVE);
-                        user.setCreatedBy(0);
                     }
                     
                     users.add(user);
@@ -359,11 +350,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     // Get new fields
                     try {
                         user.setStatus(cursor.getString(cursor.getColumnIndexOrThrow(KEY_USER_STATUS)));
-                        user.setCreatedBy(cursor.getLong(cursor.getColumnIndexOrThrow(KEY_USER_CREATED_BY)));
                     } catch (Exception e) {
                         // Handle case where columns might not exist in older database versions
                         user.setStatus(User.STATUS_ACTIVE);
-                        user.setCreatedBy(0);
                     }
                     
                     users.add(user);
@@ -778,8 +767,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             values.put(KEY_USER_NAME, user.getName());
             values.put(KEY_USER_ROLE, user.getRole());
             values.put(KEY_USER_STATUS, user.getStatus());
-            values.put(KEY_USER_CREATED_BY, user.getCreatedBy());
-            
             int rows = db.update(TABLE_USERS, values, KEY_USER_ID + " = ?", 
                     new String[]{String.valueOf(user.getId())});
             

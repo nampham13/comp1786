@@ -17,27 +17,28 @@ public class User {
     private String name;
     private String role;
     private String status;
-    private long createdBy; // ID of the user who created this account
     
+
     public User() {
         this.status = STATUS_ACTIVE; // Default status is active
     }
     
-    public User(String email, String password, String name, String role) {
+    public User(String email, String name, String role, String password) {
         this.email = email;
         this.password = password;
         this.name = name;
         this.role = role;
         this.status = STATUS_ACTIVE; // Default status is active
     }
-    
-    public User(String email, String password, String name, String role, long createdBy) {
+
+    // New constructor to support creation with id.
+    public User(String email, String password, String name, String role, long id) {
         this.email = email;
         this.password = password;
         this.name = name;
         this.role = role;
         this.status = STATUS_ACTIVE; // Default status is active
-        this.createdBy = createdBy;
+        this.id = id;
     }
     
     public long getId() {
@@ -88,13 +89,7 @@ public class User {
         this.status = status;
     }
     
-    public long getCreatedBy() {
-        return createdBy;
-    }
-    
-    public void setCreatedBy(long createdBy) {
-        this.createdBy = createdBy;
-    }
+
     
     public String getFirebaseUid() {
         return firebaseUid;
