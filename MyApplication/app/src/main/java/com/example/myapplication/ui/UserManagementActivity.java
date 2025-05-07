@@ -403,67 +403,70 @@ public class UserManagementActivity extends AppCompatActivity {
      * Show user details dialog when a user item is clicked
      */
     private void showUserDetailsDialog(User user) {
-        // Create a custom view for the dialog
-        View dialogView = getLayoutInflater().inflate(R.layout.dialog_user_details, null);
-        
+        // Use item_user.xml as the dialog layout
+        View dialogView = getLayoutInflater().inflate(R.layout.item_user, null);
+
         // Find views in the dialog layout
         TextView textViewName = dialogView.findViewById(R.id.textViewName);
         TextView textViewEmail = dialogView.findViewById(R.id.textViewEmail);
         TextView textViewRole = dialogView.findViewById(R.id.textViewRole);
         TextView textViewStatus = dialogView.findViewById(R.id.textViewStatus);
-        Button buttonEdit = dialogView.findViewById(R.id.buttonEdit);
+        Button buttonBan = dialogView.findViewById(R.id.buttonBan);
+        Button buttonActivate = dialogView.findViewById(R.id.buttonActivate);
         Button buttonDelete = dialogView.findViewById(R.id.buttonDelete);
-        
+
         // Set user data to views
         textViewName.setText(user.getName());
         textViewEmail.setText(user.getEmail());
         textViewRole.setText("Role: " + user.getRole());
         textViewStatus.setText("Status: " + user.getStatus());
-        
+
+        // Configure action buttons as in the adapter
+        // Hide all buttons by default
+        buttonBan.setVisibility(View.GONE);
+        buttonActivate.setVisibility(View.GONE);
+        buttonDelete.setVisibility(View.GONE);
+
+        // Don't allow actions on self
+        if (user.getId() != currentUserId) {
+            if (User.ROLE_SUPER_ADMIN.equals(currentUserRole)) {
+                if (!user.isSuperAdmin()) {
+                    if (user.isActive()) {
+                        buttonBan.setVisibility(View.VISIBLE);
+                    } else {
+                        buttonActivate.setVisibility(View.VISIBLE);
+                    }
+                    buttonDelete.setVisibility(View.VISIBLE);
+                }
+            } else if (User.ROLE_ADMIN.equals(currentUserRole)) {
+                if (user.isAdmin()) {
+                    buttonDelete.setVisibility(View.VISIBLE);
+                }
+            }
+        }
+
         // Create and show the dialog
         AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle("User Details")
                 .setView(dialogView)
                 .setPositiveButton("Close", null)
                 .create();
-        
+
         dialog.show();
-        
+
         // Set button click listeners
-        buttonEdit.setOnClickListener(v -> {
+        buttonBan.setOnClickListener(v -> {
             dialog.dismiss();
-            // TODO: Implement edit user functionality
-            Toast.makeText(this, "Edit user functionality not implemented yet", Toast.LENGTH_SHORT).show();
+            showBanUserDialog(user);
         });
-        
+        buttonActivate.setOnClickListener(v -> {
+            dialog.dismiss();
+            activateUser(user);
+        });
         buttonDelete.setOnClickListener(v -> {
             dialog.dismiss();
             showDeleteUserDialog(user);
         });
-        
-        // Show/hide buttons based on permissions
-        boolean canEdit = false;
-        boolean canDelete = false;
-        
-        // Super admin can edit/delete any user except other super admins
-        if (User.ROLE_SUPER_ADMIN.equals(currentUserRole)) {
-            if (!user.isSuperAdmin()) {
-                canEdit = true;
-                canDelete = true;
-            }
-        }
-        else if (User.ROLE_ADMIN.equals(currentUserRole)) {
-            if (user.isCustomer()) {
-                canEdit = true;
-                canDelete = true;
-            } else if (user.isAdmin() && user.getId() != currentUserId) {
-                canDelete = true;
-            }
-        }
-        
-        // Set button visibility
-        buttonEdit.setVisibility(canEdit ? View.VISIBLE : View.GONE);
-        buttonDelete.setVisibility(canDelete ? View.VISIBLE : View.GONE);
     }
     
     private void completeUserDeletion(User user) {

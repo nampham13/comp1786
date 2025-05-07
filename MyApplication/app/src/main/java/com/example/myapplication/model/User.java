@@ -126,4 +126,9 @@ public class User {
     public boolean isBanned() {
         return STATUS_BANNED.equals(status);
     }
+
+    // Ban function: sets the user's status to banned
+    public void ban() {
+        this.status = STATUS_BANNED;
+    }
 }
