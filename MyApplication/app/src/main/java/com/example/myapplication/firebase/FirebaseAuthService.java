@@ -1,16 +1,8 @@
 package com.example.myapplication.firebase;
 
-import android.util.Log;
-
-import androidx.annotation.NonNull;
-
 import com.example.myapplication.model.User;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -137,12 +129,12 @@ public class FirebaseAuthService {
                         DocumentSnapshot document = task.getResult();
                         if (document.exists()) {
                             // Create user object from Firestore data
-                            User user = new User();
+                            String email = document.getString("email");
+                            String name = document.getString("name");
+                            String role = document.getString("role");
+                            String status = document.getString("status");
+                            User user = new User(email, null, name, role, status);
                             user.setFirebaseUid(uid);
-                            user.setEmail(document.getString("email"));
-                            user.setName(document.getString("name"));
-                            user.setRole(document.getString("role"));
-                            user.setStatus(document.getString("status"));
                             
                             // Check if user is banned
                             if (user.isBanned()) {
@@ -174,12 +166,12 @@ public class FirebaseAuthService {
                     if (task.isSuccessful() && task.getResult() != null) {
                         List<User> users = new ArrayList<>();
                         for (DocumentSnapshot document : task.getResult()) {
-                            User user = new User();
+                            String email = document.getString("email");
+                            String name = document.getString("name");
+                            String role = document.getString("role");
+                            String status = document.getString("status");
+                            User user = new User(email, null, name, role, status);
                             user.setFirebaseUid(document.getId());
-                            user.setEmail(document.getString("email"));
-                            user.setName(document.getString("name"));
-                            user.setRole(document.getString("role"));
-                            user.setStatus(document.getString("status"));
                             users.add(user);
                         }
                         callback.onSuccess(users);
@@ -204,12 +196,12 @@ public class FirebaseAuthService {
                     if (task.isSuccessful() && task.getResult() != null) {
                         if (!task.getResult().isEmpty()) {
                             DocumentSnapshot document = task.getResult().getDocuments().get(0);
-                            User user = new User();
+                            String dbEmail = document.getString("email");
+                            String name = document.getString("name");
+                            String role = document.getString("role");
+                            String status = document.getString("status");
+                            User user = new User(dbEmail, null, name, role, status);
                             user.setFirebaseUid(document.getId());
-                            user.setEmail(document.getString("email"));
-                            user.setName(document.getString("name"));
-                            user.setRole(document.getString("role"));
-                            user.setStatus(document.getString("status"));
                             callback.onSuccess(user);
                         } else {
                             callback.onFailure("User not found");

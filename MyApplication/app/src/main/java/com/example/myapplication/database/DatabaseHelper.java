@@ -181,25 +181,21 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         
         String USERS_SELECT_QUERY = String.format("SELECT * FROM %s WHERE %s = ? AND %s = ?",
                 TABLE_USERS, KEY_USER_EMAIL, KEY_USER_PASSWORD);
-                
+
         Cursor cursor = db.rawQuery(USERS_SELECT_QUERY, new String[]{email, password});
         try {
             if (cursor.moveToFirst()) {
-                user = new User();
-                user.setId(cursor.getInt(cursor.getColumnIndexOrThrow(KEY_USER_ID)));
-                user.setEmail(cursor.getString(cursor.getColumnIndexOrThrow(KEY_USER_EMAIL)));
-                user.setPassword(cursor.getString(cursor.getColumnIndexOrThrow(KEY_USER_PASSWORD)));
-                user.setName(cursor.getString(cursor.getColumnIndexOrThrow(KEY_USER_NAME)));
-                user.setRole(cursor.getString(cursor.getColumnIndexOrThrow(KEY_USER_ROLE)));
-                
-                // Get new fields
+                String dbName = cursor.getString(cursor.getColumnIndexOrThrow(KEY_USER_NAME));
+                String dbRole = cursor.getString(cursor.getColumnIndexOrThrow(KEY_USER_ROLE));
+                String dbStatus = null;
                 try {
-                    user.setStatus(cursor.getString(cursor.getColumnIndexOrThrow(KEY_USER_STATUS)));
+                    dbStatus = cursor.getString(cursor.getColumnIndexOrThrow(KEY_USER_STATUS));
                 } catch (Exception e) {
-                    // Handle case where columns might not exist in older database versions
-                    user.setStatus(User.STATUS_ACTIVE);
+                    dbStatus = User.STATUS_ACTIVE;
                 }
-                
+                user = new User(email, password, dbName, dbRole, dbStatus);
+                user.setId(cursor.getInt(cursor.getColumnIndexOrThrow(KEY_USER_ID)));
+
                 // Check if user is banned
                 if (user.isBanned()) {
                     // Return null if user is banned
@@ -213,34 +209,32 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 cursor.close();
             }
         }
-        
+
         return user;
     }
     
     public User getUserById(long userId) {
         SQLiteDatabase db = getReadableDatabase();
         User user = null;
-        
+
         String USERS_SELECT_QUERY = String.format("SELECT * FROM %s WHERE %s = ?",
                 TABLE_USERS, KEY_USER_ID);
-                
+
         Cursor cursor = db.rawQuery(USERS_SELECT_QUERY, new String[]{String.valueOf(userId)});
         try {
             if (cursor.moveToFirst()) {
-                user = new User();
-                user.setId(cursor.getInt(cursor.getColumnIndexOrThrow(KEY_USER_ID)));
-                user.setEmail(cursor.getString(cursor.getColumnIndexOrThrow(KEY_USER_EMAIL)));
-                user.setPassword(cursor.getString(cursor.getColumnIndexOrThrow(KEY_USER_PASSWORD)));
-                user.setName(cursor.getString(cursor.getColumnIndexOrThrow(KEY_USER_NAME)));
-                user.setRole(cursor.getString(cursor.getColumnIndexOrThrow(KEY_USER_ROLE)));
-                
-                // Get new fields
+                String dbEmail = cursor.getString(cursor.getColumnIndexOrThrow(KEY_USER_EMAIL));
+                String dbPassword = cursor.getString(cursor.getColumnIndexOrThrow(KEY_USER_PASSWORD));
+                String dbName = cursor.getString(cursor.getColumnIndexOrThrow(KEY_USER_NAME));
+                String dbRole = cursor.getString(cursor.getColumnIndexOrThrow(KEY_USER_ROLE));
+                String dbStatus = null;
                 try {
-                    user.setStatus(cursor.getString(cursor.getColumnIndexOrThrow(KEY_USER_STATUS)));
+                    dbStatus = cursor.getString(cursor.getColumnIndexOrThrow(KEY_USER_STATUS));
                 } catch (Exception e) {
-                    // Handle case where columns might not exist in older database versions
-                    user.setStatus(User.STATUS_ACTIVE);
+                    dbStatus = User.STATUS_ACTIVE;
                 }
+                user = new User(dbEmail, dbPassword, dbName, dbRole, dbStatus);
+                user.setId(cursor.getInt(cursor.getColumnIndexOrThrow(KEY_USER_ID)));
             }
         } catch (Exception e) {
             Log.d(TAG, "Error while trying to get user by ID");
@@ -249,34 +243,31 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 cursor.close();
             }
         }
-        
+
         return user;
     }
     
     public User getUserByEmail(String email) {
         SQLiteDatabase db = getReadableDatabase();
         User user = null;
-        
+
         String USERS_SELECT_QUERY = String.format("SELECT * FROM %s WHERE %s = ?",
                 TABLE_USERS, KEY_USER_EMAIL);
-                
+
         Cursor cursor = db.rawQuery(USERS_SELECT_QUERY, new String[]{email});
         try {
             if (cursor.moveToFirst()) {
-                user = new User();
-                user.setId(cursor.getInt(cursor.getColumnIndexOrThrow(KEY_USER_ID)));
-                user.setEmail(cursor.getString(cursor.getColumnIndexOrThrow(KEY_USER_EMAIL)));
-                user.setPassword(cursor.getString(cursor.getColumnIndexOrThrow(KEY_USER_PASSWORD)));
-                user.setName(cursor.getString(cursor.getColumnIndexOrThrow(KEY_USER_NAME)));
-                user.setRole(cursor.getString(cursor.getColumnIndexOrThrow(KEY_USER_ROLE)));
-                
-                // Get new fields
+                String dbPassword = cursor.getString(cursor.getColumnIndexOrThrow(KEY_USER_PASSWORD));
+                String dbName = cursor.getString(cursor.getColumnIndexOrThrow(KEY_USER_NAME));
+                String dbRole = cursor.getString(cursor.getColumnIndexOrThrow(KEY_USER_ROLE));
+                String dbStatus = null;
                 try {
-                    user.setStatus(cursor.getString(cursor.getColumnIndexOrThrow(KEY_USER_STATUS)));
+                    dbStatus = cursor.getString(cursor.getColumnIndexOrThrow(KEY_USER_STATUS));
                 } catch (Exception e) {
-                    // Handle case where columns might not exist in older database versions
-                    user.setStatus(User.STATUS_ACTIVE);
+                    dbStatus = User.STATUS_ACTIVE;
                 }
+                user = new User(email, dbPassword, dbName, dbRole, dbStatus);
+                user.setId(cursor.getInt(cursor.getColumnIndexOrThrow(KEY_USER_ID)));
             }
         } catch (Exception e) {
             Log.d(TAG, "Error while trying to get user by email");
@@ -285,36 +276,33 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 cursor.close();
             }
         }
-        
+
         return user;
     }
     
     public List<User> getAllUsers() {
         List<User> users = new ArrayList<>();
-        
+
         String USERS_SELECT_QUERY = String.format("SELECT * FROM %s ORDER BY %s",
                 TABLE_USERS, KEY_USER_ID);
-        
+
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.rawQuery(USERS_SELECT_QUERY, null);
         try {
             if (cursor.moveToFirst()) {
                 do {
-                    User user = new User();
-                    user.setId(cursor.getInt(cursor.getColumnIndexOrThrow(KEY_USER_ID)));
-                    user.setEmail(cursor.getString(cursor.getColumnIndexOrThrow(KEY_USER_EMAIL)));
-                    user.setPassword(cursor.getString(cursor.getColumnIndexOrThrow(KEY_USER_PASSWORD)));
-                    user.setName(cursor.getString(cursor.getColumnIndexOrThrow(KEY_USER_NAME)));
-                    user.setRole(cursor.getString(cursor.getColumnIndexOrThrow(KEY_USER_ROLE)));
-                    
-                    // Get new fields
+                    String dbEmail = cursor.getString(cursor.getColumnIndexOrThrow(KEY_USER_EMAIL));
+                    String dbPassword = cursor.getString(cursor.getColumnIndexOrThrow(KEY_USER_PASSWORD));
+                    String dbName = cursor.getString(cursor.getColumnIndexOrThrow(KEY_USER_NAME));
+                    String dbRole = cursor.getString(cursor.getColumnIndexOrThrow(KEY_USER_ROLE));
+                    String dbStatus = null;
                     try {
-                        user.setStatus(cursor.getString(cursor.getColumnIndexOrThrow(KEY_USER_STATUS)));
+                        dbStatus = cursor.getString(cursor.getColumnIndexOrThrow(KEY_USER_STATUS));
                     } catch (Exception e) {
-                        // Handle case where columns might not exist in older database versions
-                        user.setStatus(User.STATUS_ACTIVE);
+                        dbStatus = User.STATUS_ACTIVE;
                     }
-                    
+                    User user = new User(dbEmail, dbPassword, dbName, dbRole, dbStatus);
+                    user.setId(cursor.getInt(cursor.getColumnIndexOrThrow(KEY_USER_ID)));
                     users.add(user);
                 } while (cursor.moveToNext());
             }
@@ -325,36 +313,33 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 cursor.close();
             }
         }
-        
+
         return users;
     }
     
     public List<User> getUsersByRole(String role) {
         List<User> users = new ArrayList<>();
-        
+
         String USERS_SELECT_QUERY = String.format("SELECT * FROM %s WHERE %s = ? ORDER BY %s",
                 TABLE_USERS, KEY_USER_ROLE, KEY_USER_ID);
-        
+
         SQLiteDatabase db = getReadableDatabase();
         Cursor cursor = db.rawQuery(USERS_SELECT_QUERY, new String[]{role});
         try {
             if (cursor.moveToFirst()) {
                 do {
-                    User user = new User();
-                    user.setId(cursor.getInt(cursor.getColumnIndexOrThrow(KEY_USER_ID)));
-                    user.setEmail(cursor.getString(cursor.getColumnIndexOrThrow(KEY_USER_EMAIL)));
-                    user.setPassword(cursor.getString(cursor.getColumnIndexOrThrow(KEY_USER_PASSWORD)));
-                    user.setName(cursor.getString(cursor.getColumnIndexOrThrow(KEY_USER_NAME)));
-                    user.setRole(cursor.getString(cursor.getColumnIndexOrThrow(KEY_USER_ROLE)));
-                    
-                    // Get new fields
+                    String dbEmail = cursor.getString(cursor.getColumnIndexOrThrow(KEY_USER_EMAIL));
+                    String dbPassword = cursor.getString(cursor.getColumnIndexOrThrow(KEY_USER_PASSWORD));
+                    String dbName = cursor.getString(cursor.getColumnIndexOrThrow(KEY_USER_NAME));
+                    String dbRole = cursor.getString(cursor.getColumnIndexOrThrow(KEY_USER_ROLE));
+                    String dbStatus = null;
                     try {
-                        user.setStatus(cursor.getString(cursor.getColumnIndexOrThrow(KEY_USER_STATUS)));
+                        dbStatus = cursor.getString(cursor.getColumnIndexOrThrow(KEY_USER_STATUS));
                     } catch (Exception e) {
-                        // Handle case where columns might not exist in older database versions
-                        user.setStatus(User.STATUS_ACTIVE);
+                        dbStatus = User.STATUS_ACTIVE;
                     }
-                    
+                    User user = new User(dbEmail, dbPassword, dbName, dbRole, dbStatus);
+                    user.setId(cursor.getInt(cursor.getColumnIndexOrThrow(KEY_USER_ID)));
                     users.add(user);
                 } while (cursor.moveToNext());
             }
@@ -365,7 +350,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 cursor.close();
             }
         }
-        
+
         return users;
     }
     

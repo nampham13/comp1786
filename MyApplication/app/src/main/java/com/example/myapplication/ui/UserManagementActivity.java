@@ -133,7 +133,7 @@ public class UserManagementActivity extends AppCompatActivity {
      */
     private void createNewUser(String email, String password, String name) {
         // Create new user - only admin role is allowed
-        User newUser = new User(email, password, name, selectedRole, currentUserId);
+        User newUser = new User(email, password, name, selectedRole, User.STATUS_ACTIVE);
         
         // Register user with Firebase
         firebaseAuthService.registerUser(newUser, new FirebaseAuthService.AuthCallback() {
@@ -164,26 +164,35 @@ public class UserManagementActivity extends AppCompatActivity {
 
     private void loadUsers() {
         userList.clear();
-        
+
         // Get all users from Firebase
         firebaseAuthService.getAllUsers(new FirebaseAuthService.UsersCallback() {
             @Override
             public void onSuccess(List<User> users) {
-                // Filter users based on current user's role
-                for (User user : users) {
-                    // Super admin can see all users
+                Log.d(TAG, "Users fetched from Firebase: " + (users != null ? users.size() : 0));
+                if (users != null) {
                     if (User.ROLE_SUPER_ADMIN.equals(currentUserRole)) {
-                        userList.add(user);
+                        // Super admin sees all users
+                        userList.addAll(users);
+                    } else if (User.ROLE_ADMIN.equals(currentUserRole)) {
+                        // Admin sees themselves and all customers
+                        for (User user : users) {
+                            if (user.getRole() != null && user.getRole().equals(User.ROLE_CUSTOMER)) {
+                                userList.add(user);
+                            } else if (user.getRole() != null && user.getRole().equals(User.ROLE_ADMIN) && user.getFirebaseUid() != null && user.getFirebaseUid().equals(currentUserFirebaseUid)) {
+                                userList.add(user);
+                            }
+                        }
                     }
                 }
                 userAdapter.notifyDataSetChanged();
             }
-            
+
             @Override
             public void onFailure(String errorMessage) {
                 Log.e(TAG, "Failed to load users: " + errorMessage);
                 Toast.makeText(UserManagementActivity.this, "Failed to load users: " + errorMessage, Toast.LENGTH_SHORT).show();
-                
+
                 // Fallback to local database during transition
                 loadUsersFromLocalDatabase();
             }
@@ -192,22 +201,28 @@ public class UserManagementActivity extends AppCompatActivity {
     
     private void loadUsersFromLocalDatabase() {
         userList.clear();
-        
+
         // Get all users from local database
         List<User> allUsers = databaseHelper.getAllUsers();
-        
-        // Filter users based on current user's role
-        for (User user : allUsers) {
-            // Super admin can see all users
-            if (User.ROLE_SUPER_ADMIN.equals(currentUserRole)) {
+
+        if (User.ROLE_SUPER_ADMIN.equals(currentUserRole)) {
+            for (User user : allUsers) {
                 // Don't show the default super admin in the list if current user is not the default super admin
                 if (user.getId() == 1 && currentUserId != 1) {
                     continue;
                 }
                 userList.add(user);
             }
+        } else if (User.ROLE_ADMIN.equals(currentUserRole)) {
+            for (User user : allUsers) {
+                if (user.getRole() != null && user.getRole().equals(User.ROLE_CUSTOMER)) {
+                    userList.add(user);
+                } else if (user.getRole() != null && user.getRole().equals(User.ROLE_ADMIN) && user.getId() == currentUserId) {
+                    userList.add(user);
+                }
+            }
         }
-        
+
         userAdapter.notifyDataSetChanged();
     }
 

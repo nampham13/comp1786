@@ -19,11 +19,25 @@ public class User {
     private String status;
     
 
-    public User() {
-        this.status = STATUS_ACTIVE; // Default status is active
+    public User(String email, String password, String name, String role, String status) {
+        this.email = email;
+        this.password = password;
+        this.name = name;
+        this.role = role;
+        this.status = status != null ? status : STATUS_ACTIVE;
     }
-    
-    public User(String email, String name, String role, String password) {
+
+    // Constructor for user management (with status, for display/listing)
+    public User(String email, String name, String role, String status) {
+        this.email = email;
+        this.name = name;
+        this.role = role;
+        this.status = status;
+        this.password = null; // Password is not set in this constructor
+    }
+
+    // Full constructor (with password, for registration)
+    public User(String email, String name, String role, String password, boolean isRegistration) {
         this.email = email;
         this.password = password;
         this.name = name;
@@ -31,16 +45,9 @@ public class User {
         this.status = STATUS_ACTIVE; // Default status is active
     }
 
-    // New constructor to support creation with id.
-    public User(String email, String password, String name, String role, long id) {
-        this.email = email;
-        this.password = password;
-        this.name = name;
-        this.role = role;
-        this.status = STATUS_ACTIVE; // Default status is active
-        this.id = id;
-    }
-    
+    // Remove unused/legacy constructor
+
+
     public long getId() {
         return id;
     }
@@ -103,7 +110,7 @@ public class User {
     public boolean isSuperAdmin() {
         return ROLE_SUPER_ADMIN.equals(role);
     }
-    
+
     public boolean isAdmin() {
         return ROLE_ADMIN.equals(role);
     }
