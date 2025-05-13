@@ -8,6 +8,7 @@ class CourseProvider extends ChangeNotifier {
   List<Course> _filteredCourses = [];
   String? _selectedDay;
   String? _selectedTime;
+  String _searchQuery = '';
   bool _isLoading = false;
   String? _error;
 
@@ -17,11 +18,20 @@ class CourseProvider extends ChangeNotifier {
   String? get error => _error;
   String? get selectedDay => _selectedDay;
   String? get selectedTime => _selectedTime;
-  bool get hasFilters => _selectedDay != null || _selectedTime != null;
+  bool get hasFilters => _selectedDay != null || _selectedTime != null || _searchQuery.isNotEmpty;
+
+  String get searchQuery => _searchQuery;
 
   // Set all courses
   void setCourses(List<Course> courses) {
     _allCourses = courses;
+    _applyFilters();
+    notifyListeners();
+  }
+
+  // Set search query
+  void setSearchQuery(String query) {
+    _searchQuery = query.trim();
     _applyFilters();
     notifyListeners();
   }
@@ -44,31 +54,38 @@ class CourseProvider extends ChangeNotifier {
   void clearFilters() {
     _selectedDay = null;
     _selectedTime = null;
+    _searchQuery = '';
     _applyFilters();
     notifyListeners();
   }
 
   // Apply both filters
-  void setFilters({String? day, String? time}) {
+  void setFilters({String? day, String? time, String? searchQuery}) {
     _selectedDay = day;
     _selectedTime = time;
+    if (searchQuery != null) _searchQuery = searchQuery;
     _applyFilters();
     notifyListeners();
   }
 
   // Apply filters to the course list
   void _applyFilters() {
-    if (_selectedDay == null && _selectedTime == null) {
-      // No filters, show all courses
-      _filteredCourses = List.from(_allCourses);
-      return;
+    List<Course> filtered = List.from(_allCourses);
+    if (_selectedDay != null) {
+      filtered = filtered.where((course) => course.dayOfWeek == _selectedDay).toList();
     }
-
-    _filteredCourses = _allCourses.where((course) {
-      bool matchesDay = _selectedDay == null || course.dayOfWeek == _selectedDay;
-      bool matchesTime = _selectedTime == null || course.time == _selectedTime;
-      return matchesDay && matchesTime;
-    }).toList();
+    if (_selectedTime != null) {
+      filtered = filtered.where((course) => course.time == _selectedTime).toList();
+    }
+    if (_searchQuery.isNotEmpty) {
+      final q = _searchQuery.toLowerCase();
+      filtered = filtered.where((course) {
+        return (course.title?.toLowerCase().contains(q) ?? false) ||
+               (course.type?.toLowerCase().contains(q) ?? false) ||
+               (course.description?.toLowerCase().contains(q) ?? false);
+      }).toList();
+    }
+    _filteredCourses = filtered;
   }
 
   // Fetch courses from Firestore

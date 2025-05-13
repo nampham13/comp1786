@@ -2,16 +2,15 @@
 import 'package:flutter/material.dart';
 
 class SearchFilter extends StatefulWidget {
-  final Function(String? day, String? time) onFilterChanged;
-  
+  final void Function(String? day, String? time, String? searchQuery) onFilterChanged;
   const SearchFilter({required this.onFilterChanged, Key? key}) : super(key: key);
-  
+
   @override
   State<SearchFilter> createState() => _SearchFilterState();
 }
 
 class _SearchFilterState extends State<SearchFilter> {
-  final TextEditingController _controller = TextEditingController();
+  // Search bar removed, handled by ModernSearchBar in HomeScreen
   String? selectedDay;
   TimeOfDay? selectedTime;
   final days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -28,7 +27,7 @@ class _SearchFilterState extends State<SearchFilter> {
   }
 
   void _applyFilters() {
-    widget.onFilterChanged(selectedDay, _formatTimeForFilter(selectedTime));
+    widget.onFilterChanged(selectedDay, _formatTimeForFilter(selectedTime), null);
   }
 
   @override
@@ -37,38 +36,7 @@ class _SearchFilterState extends State<SearchFilter> {
       padding: const EdgeInsets.all(12.0),
       child: Column(
         children: [
-          Material(
-            elevation: 2,
-            borderRadius: BorderRadius.circular(28),
-            child: TextField(
-              controller: _controller,
-              decoration: InputDecoration(
-                hintText: 'Search classes',
-                prefixIcon: const Icon(Icons.search, color: Colors.grey),
-                suffixIcon: _controller.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear, color: Colors.grey),
-                        onPressed: () {
-                          setState(() => _controller.clear());
-                          // Reset search filter when cleared
-                          _applyFilters();
-                        },
-                      )
-                    : null,
-                filled: true,
-                fillColor: Colors.white,
-                contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 20),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(28),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-              onChanged: (val) {
-                setState(() {}); // For clear button
-                // TODO: Implement search query filtering
-              },
-            ),
-          ),
+          // Search bar removed from here; now handled by ModernSearchBar in HomeScreen
           const SizedBox(height: 10),
           Row(
             children: [
