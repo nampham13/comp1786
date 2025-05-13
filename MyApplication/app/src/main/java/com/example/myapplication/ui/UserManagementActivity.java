@@ -403,70 +403,90 @@ public class UserManagementActivity extends AppCompatActivity {
      * Show user details dialog when a user item is clicked
      */
     private void showUserDetailsDialog(User user) {
-        // Use item_user.xml as the dialog layout
-        View dialogView = getLayoutInflater().inflate(R.layout.item_user, null);
-
+        // Create the dialog
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_user_details, null);
+        
+        // Log the layout inflation
+        Log.d(TAG, "Dialog layout inflated: " + (dialogView != null ? "success" : "failed"));
+        
         // Find views in the dialog layout
         TextView textViewName = dialogView.findViewById(R.id.textViewName);
         TextView textViewEmail = dialogView.findViewById(R.id.textViewEmail);
         TextView textViewRole = dialogView.findViewById(R.id.textViewRole);
         TextView textViewStatus = dialogView.findViewById(R.id.textViewStatus);
-        Button buttonBan = dialogView.findViewById(R.id.buttonBan);
-        Button buttonActivate = dialogView.findViewById(R.id.buttonActivate);
+        Button buttonEdit = dialogView.findViewById(R.id.buttonEdit);
         Button buttonDelete = dialogView.findViewById(R.id.buttonDelete);
-
+        
+        // Log the button references
+        Log.d(TAG, "Button references - Edit: " + (buttonEdit != null ? "found" : "not found") + 
+              ", Delete: " + (buttonDelete != null ? "found" : "not found"));
+        
         // Set user data to views
         textViewName.setText(user.getName());
         textViewEmail.setText(user.getEmail());
         textViewRole.setText("Role: " + user.getRole());
         textViewStatus.setText("Status: " + user.getStatus());
-
-        // Configure action buttons as in the adapter
-        // Hide all buttons by default
-        buttonBan.setVisibility(View.GONE);
-        buttonActivate.setVisibility(View.GONE);
-        buttonDelete.setVisibility(View.GONE);
-
-        // Don't allow actions on self
-        if (user.getId() != currentUserId) {
-            if (User.ROLE_SUPER_ADMIN.equals(currentUserRole)) {
-                if (!user.isSuperAdmin()) {
-                    if (user.isActive()) {
-                        buttonBan.setVisibility(View.VISIBLE);
-                    } else {
-                        buttonActivate.setVisibility(View.VISIBLE);
-                    }
-                    buttonDelete.setVisibility(View.VISIBLE);
-                }
-            } else if (User.ROLE_ADMIN.equals(currentUserRole)) {
-                if (user.isAdmin()) {
-                    buttonDelete.setVisibility(View.VISIBLE);
-                }
+        
+        // Log debug information
+        Log.d(TAG, "User details dialog - User ID: " + user.getId() + 
+              ", Current User ID: " + currentUserId + 
+              ", User Role: " + user.getRole() + 
+              ", Current User Role: " + currentUserRole + 
+              ", User Status: " + user.getStatus());
+        
+        // Make sure buttons are visible
+        if (buttonEdit != null) {
+            buttonEdit.setVisibility(View.VISIBLE);
+            // Set appropriate text based on current status
+            if (user.isActive()) {
+                buttonEdit.setText("Ban User");
+                buttonEdit.setBackgroundTintList(getResources().getColorStateList(android.R.color.holo_red_light));
+            } else {
+                buttonEdit.setText("Activate User");
+                buttonEdit.setBackgroundTintList(getResources().getColorStateList(android.R.color.holo_green_light));
             }
+        } else {
+            Log.e(TAG, "Edit button is null!");
         }
-
+        
+        if (buttonDelete != null) {
+            buttonDelete.setVisibility(View.VISIBLE);
+        } else {
+            Log.e(TAG, "Delete button is null!");
+        }
+        
         // Create and show the dialog
-        AlertDialog dialog = new AlertDialog.Builder(this)
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        AlertDialog dialog = builder
                 .setTitle("User Details")
                 .setView(dialogView)
-                .setPositiveButton("Close", null)
                 .create();
-
+        
         dialog.show();
-
-        // Set button click listeners
-        buttonBan.setOnClickListener(v -> {
-            dialog.dismiss();
-            showBanUserDialog(user);
-        });
-        buttonActivate.setOnClickListener(v -> {
-            dialog.dismiss();
-            activateUser(user);
-        });
-        buttonDelete.setOnClickListener(v -> {
-            dialog.dismiss();
-            showDeleteUserDialog(user);
-        });
+        
+        // Set button click listeners with debug logging
+        if (buttonEdit != null) {
+            buttonEdit.setOnClickListener(v -> {
+                Log.d(TAG, "Edit/Status button clicked for user: " + user.getName());
+                dialog.dismiss();
+                // Show ban or activate dialog based on current status
+                if (user.isActive()) {
+                    Log.d(TAG, "User is active, showing ban dialog");
+                    showBanUserDialog(user);
+                } else {
+                    Log.d(TAG, "User is not active, activating user");
+                    activateUser(user);
+                }
+            });
+        }
+        
+        if (buttonDelete != null) {
+            buttonDelete.setOnClickListener(v -> {
+                Log.d(TAG, "Delete button clicked for user: " + user.getName());
+                dialog.dismiss();
+                showDeleteUserDialog(user);
+            });
+        }
     }
     
     private void completeUserDeletion(User user) {
