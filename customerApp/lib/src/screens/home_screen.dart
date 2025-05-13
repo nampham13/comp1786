@@ -6,6 +6,7 @@ import '../widgets/search_filter.dart';
 import '../widgets/search_bar.dart';
 import 'package:provider/provider.dart';
 import '../providers/course_provider.dart';
+import 'billing_history_screen.dart';
 import '../widgets/cart_icon_button.dart';
 import '../screens/cart_screen.dart';
 import '../screens/course_detail_screen.dart';
@@ -34,6 +35,15 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => CartScreen()),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.history),
+            tooltip: 'Billing History',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const BillingHistoryScreen()),
               );
             },
           ),

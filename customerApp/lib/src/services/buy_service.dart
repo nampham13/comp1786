@@ -27,6 +27,13 @@ class BuyService {
     // Optionally, remove from cart after buying
     final cartRef = _db.collection('users').doc(_uid).collection('cart').doc(instanceId);
     batch.delete(cartRef);
+
+    // Update the enrolled count for the instance after buying
+    final instanceRef = _db.collection('class_instances').doc(instanceId);
+    batch.update(instanceRef, {
+      'enrolled': FieldValue.increment(1),
+    });
+
     await batch.commit();
   }
 }

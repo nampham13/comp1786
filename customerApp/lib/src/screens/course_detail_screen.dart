@@ -1,79 +1,15 @@
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/services.dart';
 import '../models/instance.dart';
 import '../services/firestore_service.dart';
 import '../services/buy_service.dart';
 import '../services/billing_service.dart';
 
-// Formats MMYY to MM/YY as user types
-class _ExpiryDateTextInputFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
-    var text = newValue.text.replaceAll('/', '');
-    if (text.length > 2) {
-      text = text.substring(0, 2) + '/' + text.substring(2);
-    }
-    if (text.length > 5) {
-      text = text.substring(0, 5);
-    }
-    return TextEditingValue(
-      text: text,
-      selection: TextSelection.collapsed(offset: text.length),
-    );
-  }
-}
 
 class CourseDetailScreen extends StatelessWidget {
-  Widget _buildPurchaseHistory(String? userId) {
-    if (userId == null) {
-      return const Text('Log in to see your purchase history.');
-    }
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('users')
-          .doc(userId)
-          .collection('purchases')
-          .orderBy('purchasedAt', descending: true)
-          .snapshots(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          return const Text('No purchase history found.');
-        }
-        final purchases = snapshot.data!.docs;
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 24),
-            Text('Purchase History', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: purchases.length,
-              separatorBuilder: (_, __) => const Divider(),
-              itemBuilder: (context, index) {
-                final data = purchases[index].data() as Map<String, dynamic>;
-                final date = (data['purchasedAt'] as Timestamp?)?.toDate();
-                return ListTile(
-                  leading: const Icon(Icons.receipt_long),
-                  title: Text(data['courseTitle'] ?? 'Untitled'),
-                  subtitle: Text('Paid: \$${data['price']?.toStringAsFixed(2) ?? '0.00'}\nDate: '
-                      + (date != null ? '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}' : 'Unknown')),
-                  trailing: Text('•••• ${data['cardLast4'] ?? '----'}'),
-                );
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
   final String courseId;
   const CourseDetailScreen({required this.courseId, Key? key}) : super(key: key);
 
@@ -167,9 +103,7 @@ class CourseDetailScreen extends StatelessWidget {
 
                 const SizedBox(height: 24),
 
-                // --- PURCHASE HISTORY ---
-                _buildPurchaseHistory(user?.uid),
-                // --- END PURCHASE HISTORY ---
+                // Purchase history removed as per requirements
 
                 const SizedBox(height: 24),
 
@@ -404,7 +338,6 @@ class _CourseBuyCardState extends State<_CourseBuyCard> {
                       inputFormatters: [
                         FilteringTextInputFormatter.digitsOnly,
                         LengthLimitingTextInputFormatter(4),
-                        _ExpiryDateTextInputFormatter(),
                       ],
                       decoration: const InputDecoration(labelText: 'Expiry (MM/YY)', hintText: 'MM/YY'),
                     ),
@@ -598,22 +531,7 @@ if (!(cvv.length == 3 || cvv.length == 4)) {
         instanceData: widget.courseData,
       );
 
-      final uid = widget.userId;
-      final purchaseRef = FirebaseFirestore.instance
-          .collection('users').doc(uid)
-          .collection('purchases').doc(); // auto-id
-      await purchaseRef.set({
-        'courseId': widget.courseId,
-        'courseTitle': widget.courseData['title'] ?? '',
-        'price': amount,
-        'purchasedAt': FieldValue.serverTimestamp(),
-        'cardLast4': cardInfo['cardNumber']!.substring(cardInfo['cardNumber']!.length - 4),
-        'billingId': null, // You can add billing id if available
-        'extra': {
-          'expiry': cardInfo['expiry'],
-        },
-      });
-      // --- END PURCHASE HISTORY LOGIC ---
+      // Purchase history logic removed
 
       setState(() { _message = 'Course purchased (mock card)!'; });
     } catch (e) {
