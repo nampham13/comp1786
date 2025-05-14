@@ -250,8 +250,9 @@ public class UserManagementActivity extends AppCompatActivity {
         firebaseAuthService.updateUserStatus(user.getFirebaseUid(), User.STATUS_BANNED, new FirebaseAuthService.SimpleCallback() {
             @Override
             public void onSuccess() {
+                // Use the ban() method from User model to update status
+                user.ban();
                 // Also update in local database for backward compatibility
-                user.setStatus(User.STATUS_BANNED);
                 databaseHelper.updateUser(user);
                 
                 String userType = user.isAdmin() ? "Admin" : "User";
@@ -279,8 +280,9 @@ public class UserManagementActivity extends AppCompatActivity {
         firebaseAuthService.updateUserStatus(user.getFirebaseUid(), User.STATUS_ACTIVE, new FirebaseAuthService.SimpleCallback() {
             @Override
             public void onSuccess() {
+                // Use the activate() method from User model to update status
+                user.activate();
                 // Also update in local database for backward compatibility
-                user.setStatus(User.STATUS_ACTIVE);
                 databaseHelper.updateUser(user);
                 
                 String userType = user.isAdmin() ? "Admin" : "User";

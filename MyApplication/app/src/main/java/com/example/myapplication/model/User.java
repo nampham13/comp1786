@@ -131,4 +131,9 @@ public class User {
     public void ban() {
         this.status = STATUS_BANNED;
     }
+    
+    // Activate function: sets the user's status to active
+    public void activate() {
+        this.status = STATUS_ACTIVE;
+    }
 }
