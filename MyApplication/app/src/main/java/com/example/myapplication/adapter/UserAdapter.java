@@ -89,8 +89,6 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
         }
         // Admin can manage customers they created and other admins
         else if (User.ROLE_ADMIN.equals(currentUserRole)) {
-            // Admins can no longer manage customers (no createdBy logic)
-            // Admin can delete other admins but cannot ban/activate them
             if (user.isAdmin()) {
                 holder.buttonDelete.setVisibility(View.VISIBLE);
             }

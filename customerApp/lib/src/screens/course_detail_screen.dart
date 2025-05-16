@@ -1,12 +1,89 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+
 import '../models/instance.dart';
 import '../services/firestore_service.dart';
-import '../services/buy_service.dart';
 import '../services/billing_service.dart';
+import '../services/buy_service.dart';
+import '../utils/payment_utils.dart';
+
+// Login dialog and user creation (role always 'customer' from this app)
+Future<void> showLoginDialogAndSaveUser(BuildContext context) async {
+  final emailController = TextEditingController();
+  final nameController = TextEditingController();
+  String? errorText;
+  final result = await showDialog<bool>(
+    context: context,
+    barrierDismissible: false,
+    builder: (ctx) {
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: const Text('Login / Register'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: emailController,
+                  decoration: const InputDecoration(labelText: 'Email'),
+                  keyboardType: TextInputType.emailAddress,
+                ),
+                TextField(
+                  controller: nameController,
+                  decoration: const InputDecoration(labelText: 'Name'),
+                ),
+                if (errorText != null) ...[
+                  const SizedBox(height: 8),
+                  Text(errorText!, style: const TextStyle(color: Colors.red)),
+                ],
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  final email = emailController.text.trim();
+                  final name = nameController.text.trim();
+                  if (email.isEmpty || name.isEmpty) {
+                    setState(() { errorText = 'Email and name are required.'; });
+                    return;
+                  }
+                  // Always set role to 'customer' from this app
+                  final userData = {
+                    'email': email,
+                    'name': name,
+                    'role': 'customer',
+                    'status': 'active',
+                  };
+                  try {
+                    final usersRef = FirebaseFirestore.instance.collection('users');
+                    await usersRef.doc(email).set(userData, SetOptions(merge: true));
+                    Navigator.of(context).pop(true);
+                  } catch (e) {
+                    setState(() { errorText = 'Failed to save user: $e'; });
+                  }
+                },
+                child: const Text('Login / Register'),
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
+  if (result == true) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Login/Register successful!')),
+    );
+  }
+}
+
+
 
 
 class CourseDetailScreen extends StatelessWidget {
@@ -197,17 +274,12 @@ class _InstanceCardState extends State<_InstanceCard> {
   Future<void> _buyCourse() async {
     setState(() { _loading = true; _message = null; });
     try {
-      if (widget.userId == null) throw Exception('Not logged in');
-      final buyService = BuyService();
-      // You may want to pass more course data if available
-      await buyService.buyCourse(
-        courseId: widget.instance['courseId'] ?? '',
-        instanceId: widget.instanceId,
-        price: (widget.instance['price'] ?? 0.0) is num ? (widget.instance['price'] ?? 0.0).toDouble() : 0.0,
-        courseData: widget.instance['courseData'] ?? {},
-        instanceData: widget.instance,
-      );
-      setState(() { _message = 'Course purchased!'; });
+      final purchased = await payForOneClass(context, widget.instance);
+      if (mounted && purchased == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Course purchased!')),
+        );
+      }
     } catch (e) {
       setState(() { _message = 'Failed to buy: $e'; });
     } finally {
