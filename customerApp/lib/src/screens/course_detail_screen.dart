@@ -5,8 +5,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/instance.dart';
 import '../services/firestore_service.dart';
+
 import '../services/buy_service.dart';
 import '../services/billing_service.dart';
+import '../utils/payment_utils.dart';
 
 
 class CourseDetailScreen extends StatelessWidget {
@@ -197,16 +199,7 @@ class _InstanceCardState extends State<_InstanceCard> {
   Future<void> _buyCourse() async {
     setState(() { _loading = true; _message = null; });
     try {
-      if (widget.userId == null) throw Exception('Not logged in');
-      final buyService = BuyService();
-      // You may want to pass more course data if available
-      await buyService.buyCourse(
-        courseId: widget.instance['courseId'] ?? '',
-        instanceId: widget.instanceId,
-        price: (widget.instance['price'] ?? 0.0) is num ? (widget.instance['price'] ?? 0.0).toDouble() : 0.0,
-        courseData: widget.instance['courseData'] ?? {},
-        instanceData: widget.instance,
-      );
+      await payForOneClass(context, widget.instance);
       setState(() { _message = 'Course purchased!'; });
     } catch (e) {
       setState(() { _message = 'Failed to buy: $e'; });
