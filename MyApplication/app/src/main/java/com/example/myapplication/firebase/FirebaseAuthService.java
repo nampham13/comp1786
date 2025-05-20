@@ -73,6 +73,12 @@ public class FirebaseAuthService {
         userData.put("name", user.getName());
         userData.put("role", user.getRole());
         userData.put("status", user.getStatus());
+        
+        // Store the local database ID if it exists
+        if (user.getId() > 0) {
+            userData.put("localId", user.getId());
+        }
+        
         firestore.collection(USERS_COLLECTION).document(uid)
                 .set(userData)
                 .addOnSuccessListener(aVoid -> {
@@ -155,6 +161,51 @@ public class FirebaseAuthService {
     }
     
     /**
+     * Get user by UID from Firestore
+     * 
+     * @param uid Firebase user ID
+     * @param callback Callback to handle the result
+     */
+    public void getUserByUid(String uid, final AuthCallback callback) {
+        if (uid == null || uid.isEmpty()) {
+            callback.onFailure("Invalid user ID");
+            return;
+        }
+        
+        firestore.collection(USERS_COLLECTION).document(uid)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult() != null) {
+                        DocumentSnapshot document = task.getResult();
+                        if (document.exists()) {
+                            // Create user object from Firestore data
+                            String email = document.getString("email");
+                            String name = document.getString("name");
+                            String role = document.getString("role");
+                            String status = document.getString("status");
+                            User user = new User(email, null, name, role, status);
+                            user.setFirebaseUid(uid);
+                            
+                            // Try to get the local database ID if it exists
+                            if (document.contains("localId")) {
+                                Long localId = document.getLong("localId");
+                                if (localId != null) {
+                                    user.setId(localId);
+                                }
+                            }
+                            
+                            callback.onSuccess(user);
+                        } else {
+                            callback.onFailure("User data not found");
+                        }
+                    } else {
+                        callback.onFailure(task.getException() != null ? 
+                                task.getException().getMessage() : "Failed to get user data");
+                    }
+                });
+    }
+    
+    /**
      * Get all users from Firestore
      * 
      * @param callback Callback to handle the result
@@ -172,6 +223,15 @@ public class FirebaseAuthService {
                             String status = document.getString("status");
                             User user = new User(email, null, name, role, status);
                             user.setFirebaseUid(document.getId());
+                            
+                            // Try to get the local database ID if it exists
+                            if (document.contains("localId")) {
+                                Long localId = document.getLong("localId");
+                                if (localId != null) {
+                                    user.setId(localId);
+                                }
+                            }
+                            
                             users.add(user);
                         }
                         callback.onSuccess(users);

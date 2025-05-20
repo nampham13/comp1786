@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:padding="16dp">
@@ -121,48 +122,57 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/divider" />
 
+    <!-- Ban Button (shown for active users) - Left side -->
+
+    <!-- Ban Button (shown for active users) - Left side -->
+
+    <!-- Activate Button (shown for banned users) - Left side, stacked with Ban -->
+
+    <!-- Delete Button - Right side -->
+
     <Button
         android:id="@+id/buttonDialogBan"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:layout_marginEnd="4dp"
+        android:layout_marginEnd="64dp"
+        android:backgroundTint="#FF5722"
         android:text="Ban User"
         android:textColor="@android:color/white"
-        android:backgroundTint="#FF5722"
+        app:layout_constraintBottom_toBottomOf="@+id/buttonDialogDelete"
         app:layout_constraintEnd_toStartOf="@+id/buttonDialogDelete"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textViewDialogActions" />
+        app:layout_constraintTop_toBottomOf="@+id/textViewDialogActions"
+        app:layout_constraintVertical_bias="1.0" />
 
     <Button
         android:id="@+id/buttonDialogActivate"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:layout_marginEnd="4dp"
+        android:layout_marginEnd="52dp"
+        android:backgroundTint="#4CAF50"
         android:text="Activate User"
         android:textColor="@android:color/white"
-        android:backgroundTint="#4CAF50"
+        app:layout_constraintBottom_toBottomOf="@+id/buttonDialogDelete"
         app:layout_constraintEnd_toStartOf="@+id/buttonDialogDelete"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textViewDialogActions" />
+        app:layout_constraintTop_toBottomOf="@+id/textViewDialogActions"
+        app:layout_constraintVertical_bias="1.0" />
 
     <Button
         android:id="@+id/buttonDialogDelete"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="4dp"
-        android:text="Delete User"
-        android:textColor="@android:color/white"
+        android:layout_marginStart="8dp"
         android:backgroundTint="#F44336"
         android:drawableLeft="@android:drawable/ic_menu_delete"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
-        app:layout_constraintBottom_toBottomOf="@+id/buttonDialogBan"
+        android:text="Delete User"
+        android:textColor="@android:color/white"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/buttonDialogBan"
-        app:layout_constraintTop_toTopOf="@+id/buttonDialogBan" />
+        app:layout_constraintTop_toBottomOf="@+id/textViewDialogActions"/>
 
+    <!-- Close Button - Full width -->
     <Button
         android:id="@+id/buttonDialogClose"
         android:layout_width="0dp"

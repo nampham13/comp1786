@@ -57,41 +57,38 @@
             app:layout_constraintStart_toEndOf="@+id/textViewRole"
             app:layout_constraintTop_toTopOf="@+id/textViewRole" />
 
-        <Button
-            android:id="@+id/buttonBan"
-            android:layout_width="wrap_content"
+        <!-- Action buttons container -->
+        <LinearLayout
+            android:id="@+id/layoutUserActions"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="Ban"
-            android:textColor="@android:color/white"
-            android:backgroundTint="#FF5722"
+            android:layout_marginTop="12dp"
+            android:orientation="horizontal"
+            android:gravity="end"
+            app:layout_constraintTop_toBottomOf="@+id/textViewStatus"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textViewRole" />
+            app:layout_constraintEnd_toEndOf="parent">
 
-        <Button
-            android:id="@+id/buttonActivate"
+            <Button
+                android:id="@+id/buttonActivate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Activate"
+                android:backgroundTint="#4CAF50"
+                android:textColor="@android:color/white"
+                android:visibility="gone" />
+
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/imageViewArrow"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="Activate"
-            android:textColor="@android:color/white"
-            android:backgroundTint="#4CAF50"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textViewRole" />
-
-        <Button
-            android:id="@+id/buttonDelete"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="Delete"
-            android:textColor="@android:color/white"
-            android:backgroundTint="#F44336"
-            android:drawableLeft="@android:drawable/ic_menu_delete"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
+            android:src="@android:drawable/ic_menu_more"
+            android:contentDescription="View more details"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textViewStatus" />
+            app:layout_constraintTop_toBottomOf="@+id/layoutUserActions" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.cardview.widget.CardView>

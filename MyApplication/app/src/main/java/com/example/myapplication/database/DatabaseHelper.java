@@ -772,13 +772,39 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         
         db.beginTransaction();
         try {
+            // Log the user ID being deleted for debugging
+            Log.d(TAG, "Attempting to delete user with ID: " + userId);
+            
+            // Check if user exists before attempting to delete
+            Cursor cursor = db.query(TABLE_USERS, new String[]{KEY_USER_ID}, 
+                    KEY_USER_ID + " = ?", new String[]{String.valueOf(userId)}, 
+                    null, null, null);
+            
+            boolean userExists = cursor != null && cursor.moveToFirst();
+            if (cursor != null) {
+                cursor.close();
+            }
+            
+            if (!userExists) {
+                Log.d(TAG, "User with ID " + userId + " does not exist in the database");
+                return false;
+            }
+            
+            // Attempt to delete the user
             int rows = db.delete(TABLE_USERS, KEY_USER_ID + " = ?", 
                     new String[]{String.valueOf(userId)});
             
             success = rows > 0;
+            if (success) {
+                Log.d(TAG, "Successfully deleted user with ID: " + userId + ", rows affected: " + rows);
+            } else {
+                Log.d(TAG, "Failed to delete user with ID: " + userId + ", no rows affected");
+            }
+            
             db.setTransactionSuccessful();
         } catch (Exception e) {
-            Log.d(TAG, "Error while trying to delete user");
+            // Log the detailed error message
+            Log.e(TAG, "Error while trying to delete user with ID: " + userId, e);
         } finally {
             db.endTransaction();
         }
