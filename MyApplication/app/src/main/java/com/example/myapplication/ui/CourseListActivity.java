@@ -14,8 +14,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.myapplication.R;
-import com.example.myapplication.database.DatabaseHelper;
 import com.example.myapplication.databinding.ActivityCourseListBinding;
+import com.example.myapplication.firebase.FirebaseService;
 import com.example.myapplication.model.Course;
 import com.example.myapplication.ui.adapter.CourseAdapter;
 import com.example.myapplication.util.SampleDataUtil;
@@ -31,7 +31,7 @@ public class CourseListActivity extends AppCompatActivity implements CourseAdapt
     private ActivityCourseListBinding binding;
     private CourseAdapter courseAdapter;
     private List<Course> courseList;
-    private DatabaseHelper databaseHelper;
+    private FirebaseService firebaseService;
     
     private final ActivityResultLauncher<Intent> addCourseLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
@@ -78,9 +78,9 @@ public class CourseListActivity extends AppCompatActivity implements CourseAdapt
             getSupportActionBar().setTitle("Yoga Courses");
         }
 
-        // Initialize database helper
-        databaseHelper = DatabaseHelper.getInstance(this);
-
+        // Initialize Firebase service
+        firebaseService = FirebaseService.getInstance();
+        
         // Initialize RecyclerView
         courseList = new ArrayList<>();
         courseAdapter = new CourseAdapter(this, courseList);
@@ -98,24 +98,7 @@ public class CourseListActivity extends AppCompatActivity implements CourseAdapt
             addCourseLauncher.launch(intent);
         });
         
-        // Setup Sample FAB
-        binding.fabAddSample.setOnClickListener(v -> {
-            // Create a sample course using the example data
-            long courseId = SampleDataUtil.createSampleCourse(databaseHelper);
-            if (courseId != -1) {
-                // Get the newly created course
-                Course newCourse = databaseHelper.getCourseById(courseId);
-                if (newCourse != null) {
-                    // Add to the list and refresh UI
-                    courseList.add(newCourse);
-                    courseAdapter.notifyItemInserted(courseList.size() - 1);
-                    updateEmptyView();
-                    Toast.makeText(this, "Sample course added successfully", Toast.LENGTH_SHORT).show();
-                }
-            } else {
-                Toast.makeText(this, "Failed to add sample course", Toast.LENGTH_SHORT).show();
-            }
-        });
+
 
         // Load courses
         loadCourses();
@@ -132,25 +115,44 @@ public class CourseListActivity extends AppCompatActivity implements CourseAdapt
     private void loadCourses() {
         binding.swipeRefreshLayout.setRefreshing(true);
         
-        try {
-            // Get courses from database
-            courseList.clear();
-            List<Course> courses = databaseHelper.getAllCourses();
-            if (courses != null) {
-                courseList.addAll(courses);
+        // Load courses from Firebase
+        firebaseService.syncCoursesFromFirebase(new FirebaseService.OnCourseSyncListener() {
+            @Override
+            public void onSyncComplete(List<Course> courses, String message) {
+                runOnUiThread(() -> {
+                    try {
+                        // Update course list
+                        courseList.clear();
+                        if (courses != null && !courses.isEmpty()) {
+                            courseList.addAll(courses);
+                            Toast.makeText(CourseListActivity.this, 
+                                "Loaded " + courses.size() + " courses", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(CourseListActivity.this, 
+                                "No courses found in Firebase", Toast.LENGTH_SHORT).show();
+                        }
+                        
+                        // Update UI
+                        courseAdapter.notifyDataSetChanged();
+                        updateEmptyView();
+                    } finally {
+                        binding.swipeRefreshLayout.setRefreshing(false);
+                    }
+                });
             }
-            
-            // Update UI
-            courseAdapter.notifyDataSetChanged();
-            updateEmptyView();
-        } catch (Exception e) {
-            // Handle any errors
-            Toast.makeText(this, "Error loading courses: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-            binding.textViewEmpty.setVisibility(View.VISIBLE);
-            binding.textViewEmpty.setText("Error loading courses");
-        } finally {
-            binding.swipeRefreshLayout.setRefreshing(false);
-        }
+
+            @Override
+            public void onSyncFailed(String errorMessage) {
+                runOnUiThread(() -> {
+                    // Handle any errors
+                    Toast.makeText(CourseListActivity.this, 
+                        "Error loading courses: " + errorMessage, Toast.LENGTH_SHORT).show();
+                    binding.textViewEmpty.setVisibility(View.VISIBLE);
+                    binding.textViewEmpty.setText("Error loading courses");
+                    binding.swipeRefreshLayout.setRefreshing(false);
+                });
+            }
+        });
     }
     
     private void updateEmptyView() {
@@ -209,27 +211,41 @@ public class CourseListActivity extends AppCompatActivity implements CourseAdapt
     }
     
     private void deleteCourse(Course course) {
-        try {
-            databaseHelper.deleteCourse(course.getId());
-            
-            // Remove from list and update UI
-            int position = -1;
-            for (int i = 0; i < courseList.size(); i++) {
-                if (courseList.get(i).getId() == course.getId()) {
-                    position = i;
-                    break;
-                }
-            }
-            
-            if (position != -1) {
-                courseList.remove(position);
-                courseAdapter.notifyItemRemoved(position);
-                updateEmptyView();
-                Toast.makeText(this, "Course deleted successfully", Toast.LENGTH_SHORT).show();
-            }
-        } catch (Exception e) {
-            Toast.makeText(this, "Error deleting course: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        if (course == null) {
+            Toast.makeText(this, "Error: Course not loaded", Toast.LENGTH_SHORT).show();
+            return;
         }
+        binding.swipeRefreshLayout.setRefreshing(true);
+        firebaseService.deleteCourseFromFirebase(course.getId(), new FirebaseService.OnSyncListener() {
+            @Override
+            public void onSyncComplete(String message) {
+                runOnUiThread(() -> {
+                    // Remove from UI list
+                    int position = -1;
+                    for (int i = 0; i < courseList.size(); i++) {
+                        if (courseList.get(i).getId() == course.getId()) {
+                            position = i;
+                            break;
+                        }
+                    }
+                    if (position != -1) {
+                        courseList.remove(position);
+                        courseAdapter.notifyItemRemoved(position);
+                        updateEmptyView();
+                    }
+                    binding.swipeRefreshLayout.setRefreshing(false);
+                    Toast.makeText(CourseListActivity.this, "Course deleted successfully", Toast.LENGTH_SHORT).show();
+                });
+            }
+
+            @Override
+            public void onSyncFailed(String errorMessage) {
+                runOnUiThread(() -> {
+                    binding.swipeRefreshLayout.setRefreshing(false);
+                    Toast.makeText(CourseListActivity.this, "Error deleting course: " + errorMessage, Toast.LENGTH_SHORT).show();
+                });
+            }
+        });
     }
 
     @Override
@@ -241,3 +257,4 @@ public class CourseListActivity extends AppCompatActivity implements CourseAdapt
         return super.onOptionsItemSelected(item);
     }
 }
+

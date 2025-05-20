@@ -20,6 +20,15 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
+    <!-- Main loading progress bar -->
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+            
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -49,6 +58,18 @@
                         android:text="Course Details"
                         android:textSize="18sp"
                         android:textStyle="bold" />
+                        
+                    <!-- Course Image -->
+                    <ImageView
+                        android:id="@+id/imageViewCourse"
+                        android:layout_width="match_parent"
+                        android:layout_height="200dp"
+                        android:layout_marginTop="16dp"
+                        android:scaleType="centerCrop"
+                        android:contentDescription="Course Image"
+                        android:visibility="gone"
+                        tools:visibility="visible"
+                        tools:src="@android:drawable/ic_menu_gallery" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -312,6 +333,14 @@
                 android:textSize="18sp"
                 android:textStyle="bold" />
 
+            <ProgressBar
+                android:id="@+id/progressBarInstances"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_margin="16dp"
+                android:visibility="gone" />
+                
             <TextView
                 android:id="@+id/textViewNoInstances"
                 android:layout_width="match_parent"

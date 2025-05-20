@@ -8,7 +8,6 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.myapplication.database.DatabaseHelper;
 import com.example.myapplication.databinding.ActivityLoginBinding;
 import com.example.myapplication.firebase.FirebaseAuthService;
 import com.example.myapplication.model.User;
@@ -18,7 +17,6 @@ public class LoginActivity extends AppCompatActivity {
     private static final String TAG = "LoginActivity";
     
     private ActivityLoginBinding binding;
-    private DatabaseHelper databaseHelper;
     private FirebaseAuthService firebaseAuthService;
     private boolean isCustomerApp;
     
@@ -28,7 +26,6 @@ public class LoginActivity extends AppCompatActivity {
         binding = ActivityLoginBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         
-        databaseHelper = DatabaseHelper.getInstance(this);
         firebaseAuthService = FirebaseAuthService.getInstance();
         
         // Check if this is the customer app
@@ -101,44 +98,6 @@ public class LoginActivity extends AppCompatActivity {
                 // Login failed
                 Log.e(TAG, "Login failed: " + errorMessage);
                 Toast.makeText(LoginActivity.this, "Login failed: " + errorMessage, Toast.LENGTH_SHORT).show();
-                
-                // Fallback to local authentication for existing users during transition
-                User user = databaseHelper.authenticateUser(email, password);
-                if (user != null) {
-                    // Migrate user to Firebase
-                    migrateUserToFirebase(user, password);
-                }
-            }
-        });
-    }
-    
-    /**
-     * Migrate existing local user to Firebase
-     */
-    private void migrateUserToFirebase(User user, String password) {
-        // Set password for migration
-        user.setPassword(password);
-        
-        // Show progress
-        binding.progressBar.setVisibility(View.VISIBLE);
-        
-        // Register user in Firebase
-        firebaseAuthService.registerUser(user, new FirebaseAuthService.AuthCallback() {
-            @Override
-            public void onSuccess(User migratedUser) {
-                // Hide progress
-                binding.progressBar.setVisibility(View.GONE);
-                
-                Toast.makeText(LoginActivity.this, "Account migrated to new system. Please login again.", Toast.LENGTH_LONG).show();
-            }
-            
-            @Override
-            public void onFailure(String errorMessage) {
-                // Hide progress
-                binding.progressBar.setVisibility(View.GONE);
-                
-                Log.e(TAG, "Migration failed: " + errorMessage);
-                Toast.makeText(LoginActivity.this, "Account migration failed: " + errorMessage, Toast.LENGTH_SHORT).show();
             }
         });
     }

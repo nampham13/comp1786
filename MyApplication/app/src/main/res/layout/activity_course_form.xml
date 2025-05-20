@@ -32,6 +32,58 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="16dp">
+            
+            <!-- Image selection section -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Course Image"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+                
+            <Button
+                android:id="@+id/buttonSelectImage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Select Image"
+                android:drawableStart="@android:drawable/ic_menu_camera"
+                android:paddingStart="16dp"
+                android:layout_marginBottom="8dp" />
+                
+            <FrameLayout
+                android:id="@+id/imageContainer"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:layout_marginBottom="16dp"
+                android:visibility="gone">
+                
+                <ImageView
+                    android:id="@+id/imageViewCourse"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:src="@android:drawable/ic_menu_gallery"
+                    android:contentDescription="Course Image" />
+                    
+                <Button
+                    android:id="@+id/buttonRemoveImage"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="top|end"
+                    android:text="Remove"
+                    android:textSize="12sp"
+                    android:backgroundTint="#E91E63"
+                    android:visibility="gone" />
+            </FrameLayout>
+            
+            <!-- Progress bar for image upload -->
+            <ProgressBar
+                android:id="@+id/progressBar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:visibility="gone" />
 
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"

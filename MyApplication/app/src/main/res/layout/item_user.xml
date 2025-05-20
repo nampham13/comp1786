@@ -3,92 +3,75 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginTop="8dp"
-    android:layout_marginBottom="8dp"
-    android:clickable="true"
-    android:focusable="true"
-    android:foreground="?android:attr/selectableItemBackground"
-    app:cardCornerRadius="8dp"
-    app:cardElevation="2dp">
+    android:layout_margin="8dp"
+    app:cardElevation="2dp"
+    app:cardCornerRadius="8dp">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:orientation="vertical"
         android:padding="16dp">
 
         <TextView
-            android:id="@+id/textViewName"
-            android:layout_width="0dp"
+            android:id="@+id/textViewUserName"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="User Name"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+            android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/textViewEmail"
-            android:layout_width="0dp"
+            android:id="@+id/textViewUserEmail"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="user@example.com"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textViewName" />
+            android:text="user@email.com"
+            android:textAppearance="@style/TextAppearance.AppCompat.Body1" />
+
 
         <TextView
-            android:id="@+id/textViewRole"
-            android:layout_width="0dp"
+            android:id="@+id/textViewUserRole"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="Role: Customer"
-            app:layout_constraintEnd_toStartOf="@+id/textViewStatus"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textViewEmail" />
+            android:text="Role"
+            android:textAppearance="@style/TextAppearance.AppCompat.Body2"
+            android:textColor="@android:color/darker_gray" />
 
         <TextView
-            android:id="@+id/textViewStatus"
-            android:layout_width="0dp"
+            android:id="@+id/textViewUserStatus"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Status: Active"
-            app:layout_constraintBottom_toBottomOf="@+id/textViewRole"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/textViewRole"
-            app:layout_constraintTop_toTopOf="@+id/textViewRole" />
+            android:text="Status"
+            android:textAppearance="@style/TextAppearance.AppCompat.Caption"
+            android:textColor="@android:color/holo_green_dark"
+            android:layout_marginTop="2dp" />
 
-        <!-- Action buttons container -->
         <LinearLayout
-            android:id="@+id/layoutUserActions"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
             android:orientation="horizontal"
             android:gravity="end"
-            app:layout_constraintTop_toBottomOf="@+id/textViewStatus"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
-
+            android:layout_marginTop="8dp">
+            <Button
+                android:id="@+id/buttonBan"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Ban"
+                android:layout_marginEnd="8dp"
+                android:visibility="gone"/>
             <Button
                 android:id="@+id/buttonActivate"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Activate"
-                android:backgroundTint="#4CAF50"
-                android:textColor="@android:color/white"
-                android:visibility="gone" />
-
+                android:layout_marginEnd="8dp"
+                android:visibility="gone"/>
+            <Button
+                android:id="@+id/buttonDelete"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Delete"
+                android:visibility="gone"/>
         </LinearLayout>
-
-        <ImageView
-            android:id="@+id/imageViewArrow"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:src="@android:drawable/ic_menu_more"
-            android:contentDescription="View more details"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/layoutUserActions" />
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
+    </LinearLayout>
 </androidx.cardview.widget.CardView>

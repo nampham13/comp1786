@@ -1,17 +1,17 @@
 package com.example.myapplication.ui.adapter;
 
 import android.content.Context;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.myapplication.database.DatabaseHelper;
+import com.bumptech.glide.Glide;
+import com.example.myapplication.R;
 import com.example.myapplication.databinding.ItemCourseBinding;
 import com.example.myapplication.model.Course;
-import com.example.myapplication.model.Instance;
 
 import java.util.List;
 
@@ -19,7 +19,6 @@ public class CourseAdapter extends RecyclerView.Adapter<CourseAdapter.CourseView
 
     private final Context context;
     private final List<Course> courseList;
-    private final DatabaseHelper databaseHelper;
     private OnCourseClickListener listener;
 
     public interface OnCourseClickListener {
@@ -29,7 +28,6 @@ public class CourseAdapter extends RecyclerView.Adapter<CourseAdapter.CourseView
     public CourseAdapter(Context context, List<Course> courseList) {
         this.context = context;
         this.courseList = courseList;
-        this.databaseHelper = DatabaseHelper.getInstance(context);
     }
 
     public void setOnCourseClickListener(OnCourseClickListener listener) {
@@ -73,15 +71,21 @@ public class CourseAdapter extends RecyclerView.Adapter<CourseAdapter.CourseView
             // Set course duration
             binding.textViewCourseDuration.setText(course.getDuration() + " min");
             
-            try {
-                // Get instances for this course
-                List<Instance> instances = databaseHelper.getInstancesByCourseId(course.getId());
-                int instanceCount = instances != null ? instances.size() : 0;
-                binding.textViewInstanceCount.setText(instanceCount + " " + 
-                        (instanceCount == 1 ? "instance" : "instances"));
-            } catch (Exception e) {
-                // Handle any database errors
-                binding.textViewInstanceCount.setText("0 instances");
+            // Remove instance count logic that uses databaseHelper
+            // You may want to set a placeholder or use a property from Course if available
+            binding.textViewInstanceCount.setText(""); // Or set to "N/A" or similar
+            
+            // Load course image if available
+            if (!TextUtils.isEmpty(course.getPhotoPath())) {
+                Glide.with(context)
+                    .load(course.getPhotoPath())
+                    .placeholder(R.drawable.ic_launcher_foreground)
+                    .error(android.R.drawable.ic_menu_gallery)
+                    .centerCrop()
+                    .into(binding.imageViewCourse);
+            } else {
+                // Set default image
+                binding.imageViewCourse.setImageResource(android.R.drawable.ic_menu_gallery);
             }
             
             // Set click listener

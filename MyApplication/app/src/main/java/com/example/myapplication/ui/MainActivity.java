@@ -7,7 +7,6 @@ import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.myapplication.database.DatabaseHelper;
 import com.example.myapplication.databinding.ActivityMainBinding;
 import com.example.myapplication.firebase.FirebaseAuthService;
 import com.example.myapplication.model.User;
@@ -21,7 +20,6 @@ public class MainActivity extends AppCompatActivity {
     private long userId;
     private String userFirebaseUid;
     private boolean isCustomerApp;
-    private DatabaseHelper databaseHelper;
     private FirebaseAuthService firebaseAuthService;
     
     @SuppressLint("SetTextI18n")
@@ -30,8 +28,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-        
-        databaseHelper = DatabaseHelper.getInstance(this);
+
         firebaseAuthService = FirebaseAuthService.getInstance();
         
         // Get user data from intent
@@ -58,7 +55,8 @@ public class MainActivity extends AppCompatActivity {
         if (isCustomerApp) {
             // Customer app UI configuration
             binding.cardViewUserManagement.setVisibility(View.GONE);
-            binding.cardViewSync.setVisibility(View.GONE);
+            // Remove cardViewSync configuration
+            // binding.cardViewSync.setVisibility(View.GONE);
             // Add more customer-specific UI configurations here
         } else {
             // Admin app UI configuration
@@ -85,14 +83,6 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
         });
         
-        binding.cardViewSync.setOnClickListener(v -> {
-            // Navigate to SyncActivity
-            Intent intent = new Intent(MainActivity.this, SyncActivity.class);
-            intent.putExtra("user_id", userId);
-            intent.putExtra("user_role", userRole);
-            startActivity(intent);
-        });
-        
         binding.cardViewUserManagement.setOnClickListener(v -> {
             // Navigate to UserManagementActivity
             Intent intent = new Intent(MainActivity.this, UserManagementActivity.class);
@@ -102,6 +92,9 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
         });
         
+        // Remove cardViewSync listener if present
+        // binding.cardViewSync.setOnClickListener(...);
+
         binding.buttonLogout.setOnClickListener(v -> {
             // Sign out from Firebase
             firebaseAuthService.signOut();

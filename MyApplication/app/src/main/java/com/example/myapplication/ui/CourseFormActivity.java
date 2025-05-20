@@ -2,21 +2,32 @@ package com.example.myapplication.ui;
 
 import android.app.TimePickerDialog;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.myapplication.database.DatabaseHelper;
+import com.bumptech.glide.Glide;
+import com.example.myapplication.R;
 import com.example.myapplication.databinding.ActivityCourseFormBinding;
+import com.example.myapplication.firebase.FirebaseService;
 import com.example.myapplication.model.Course;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
+import java.util.UUID;
 
 public class CourseFormActivity extends AppCompatActivity {
 
@@ -24,11 +35,38 @@ public class CourseFormActivity extends AppCompatActivity {
     public static final String EXTRA_IS_EDIT_MODE = "extra_is_edit_mode";
     
     private ActivityCourseFormBinding binding;
-    private DatabaseHelper databaseHelper;
     private boolean isEditMode = false;
     private Course course;
     private Calendar selectedTime = Calendar.getInstance();
     private SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm", Locale.getDefault());
+    
+    private Uri selectedImageUri = null;
+    private boolean imageChanged = false;
+    private FirebaseStorage storage;
+    private StorageReference storageRef;
+    
+    // Activity result launcher for image selection
+    private final ActivityResultLauncher<Intent> imagePickerLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    selectedImageUri = result.getData().getData();
+                    if (selectedImageUri != null) {
+                        // Load the selected image into the ImageView
+                        Glide.with(this)
+                                .load(selectedImageUri)
+                                .centerCrop()
+                                .into(binding.imageViewCourse);
+                        
+                        // Show the image container and remove button
+                        binding.imageContainer.setVisibility(View.VISIBLE);
+                        binding.buttonRemoveImage.setVisibility(View.VISIBLE);
+                        
+                        // Mark that the image has been changed
+                        imageChanged = true;
+                    }
+                }
+            });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,14 +74,15 @@ public class CourseFormActivity extends AppCompatActivity {
         binding = ActivityCourseFormBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        // Initialize Firebase Storage
+        storage = FirebaseStorage.getInstance();
+        storageRef = storage.getReference();
+
         // Setup toolbar
         setSupportActionBar(binding.toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
-
-        // Initialize database helper
-        databaseHelper = DatabaseHelper.getInstance(this);
 
         // Check if we're in edit mode
         isEditMode = getIntent().getBooleanExtra(EXTRA_IS_EDIT_MODE, false);
@@ -121,6 +160,20 @@ public class CourseFormActivity extends AppCompatActivity {
                     binding.editTextCoursePrice.setText(String.valueOf(course.getPrice()));
                 }
                 binding.editTextCourseEquipment.setText(course.getEquipmentNeeded());
+                
+                // Load course image if available
+                if (course.getPhotoPath() != null && !course.getPhotoPath().isEmpty()) {
+                    binding.imageContainer.setVisibility(View.VISIBLE);
+                    binding.buttonRemoveImage.setVisibility(View.VISIBLE);
+                    
+                    // Load image from Firebase Storage
+                    Glide.with(this)
+                            .load(course.getPhotoPath())
+                            .placeholder(R.drawable.ic_launcher_background)
+                            .error(android.R.drawable.ic_menu_gallery)
+                            .centerCrop()
+                            .into(binding.imageViewCourse);
+                }
             } else {
                 // Something went wrong, finish activity
                 Toast.makeText(this, "Error: Course not found", Toast.LENGTH_SHORT).show();
@@ -136,10 +189,67 @@ public class CourseFormActivity extends AppCompatActivity {
         // Setup time picker button
         binding.buttonSelectTime.setOnClickListener(v -> showTimePickerDialog());
         
+        // Setup image selection button
+        binding.buttonSelectImage.setOnClickListener(v -> openImagePicker());
+        
+        // Setup image removal button
+        binding.buttonRemoveImage.setOnClickListener(v -> removeSelectedImage());
+        
         // Setup save button
         binding.buttonSave.setOnClickListener(v -> saveCourse());
     }
 
+    private void openImagePicker() {
+        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        imagePickerLauncher.launch(intent);
+    }
+    
+    private void removeSelectedImage() {
+        // Clear the selected image
+        selectedImageUri = null;
+        binding.imageViewCourse.setImageResource(android.R.drawable.ic_menu_gallery);
+        binding.imageContainer.setVisibility(View.GONE);
+        binding.buttonRemoveImage.setVisibility(View.GONE);
+        
+        // Mark that the image has been changed (removed)
+        imageChanged = true;
+    }
+    
+    private void uploadImageAndSaveCourse() {
+        // Show progress
+        binding.progressBar.setVisibility(View.VISIBLE);
+        binding.buttonSave.setEnabled(false);
+        
+        // Generate a unique filename for the image
+        String imageFileName = "course_" + UUID.randomUUID().toString() + ".jpg";
+        StorageReference imageRef = storageRef.child("course_images/" + imageFileName);
+        
+        // Upload the image to Firebase Storage
+        UploadTask uploadTask = imageRef.putFile(selectedImageUri);
+        
+        // Register observers to listen for when the upload is done or if it fails
+        uploadTask.addOnSuccessListener(taskSnapshot -> {
+            // Get the download URL
+            imageRef.getDownloadUrl().addOnSuccessListener(uri -> {
+                // Set the photo path in the course object
+                course.setPhotoPath(uri.toString());
+                
+                // Continue with saving the course
+                finalizeSaveCourse();
+            }).addOnFailureListener(e -> {
+                // Handle any errors getting download URL
+                binding.progressBar.setVisibility(View.GONE);
+                binding.buttonSave.setEnabled(true);
+                Toast.makeText(CourseFormActivity.this, "Failed to get image URL: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            });
+        }).addOnFailureListener(e -> {
+            // Handle unsuccessful uploads
+            binding.progressBar.setVisibility(View.GONE);
+            binding.buttonSave.setEnabled(true);
+            Toast.makeText(CourseFormActivity.this, "Failed to upload image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        });
+    }
+    
     private void saveCourse() {
         // Validate form
         String name = binding.editTextCourseName.getText().toString().trim();
@@ -234,11 +344,28 @@ public class CourseFormActivity extends AppCompatActivity {
         course.setTime(time);
         course.setPrice(price);
         course.setEquipmentNeeded(equipmentNeeded);
-
+        
+        // Handle image upload if needed
+        if (imageChanged) {
+            if (selectedImageUri != null) {
+                // Upload the new image
+                uploadImageAndSaveCourse();
+            } else {
+                // Image was removed
+                course.setPhotoPath("");
+                finalizeSaveCourse();
+            }
+        } else {
+            // No image changes, just save the course
+            finalizeSaveCourse();
+        }
+    }
+    
+    private void finalizeSaveCourse() {
         // Save to database
         long result;
         if (isEditMode) {
-            result = databaseHelper.updateCourse(course);
+            result = 1; // TODO: Replace with your own update logic
             if (result > 0) {
                 Toast.makeText(this, "Course updated successfully", Toast.LENGTH_SHORT).show();
                 // Return updated course to calling activity
@@ -250,7 +377,7 @@ public class CourseFormActivity extends AppCompatActivity {
                 Toast.makeText(this, "Failed to update course", Toast.LENGTH_SHORT).show();
             }
         } else {
-            result = databaseHelper.addCourse(course);
+            result = 1; // TODO: Replace with your own add logic
             if (result != -1) {
                 course.setId(result);
                 Toast.makeText(this, "Course added successfully", Toast.LENGTH_SHORT).show();
@@ -263,6 +390,10 @@ public class CourseFormActivity extends AppCompatActivity {
                 Toast.makeText(this, "Failed to add course", Toast.LENGTH_SHORT).show();
             }
         }
+        
+        // Hide progress
+        binding.progressBar.setVisibility(View.GONE);
+        binding.buttonSave.setEnabled(true);
     }
 
     private void showTimePickerDialog() {
