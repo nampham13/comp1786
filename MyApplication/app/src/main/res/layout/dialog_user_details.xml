@@ -6,49 +6,99 @@
     android:padding="16dp">
 
     <TextView
-        android:id="@+id/textViewName"
+        android:id="@+id/textViewDialogTitle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="User Name"
-        android:textSize="18sp"
+        android:text="User Details"
+        android:textSize="20sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/textViewEmail"
+        android:id="@+id/textViewDialogName"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="16dp"
+        android:text="Name:"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewDialogTitle" />
+
+    <TextView
+        android:id="@+id/textViewDialogNameValue"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="User Name"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewDialogName" />
+
+    <TextView
+        android:id="@+id/textViewDialogEmail"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Email:"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewDialogNameValue" />
+
+    <TextView
+        android:id="@+id/textViewDialogEmailValue"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
         android:text="user@example.com"
-        android:textSize="16sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textViewName" />
+        app:layout_constraintTop_toBottomOf="@+id/textViewDialogEmail" />
 
     <TextView
-        android:id="@+id/textViewRole"
+        android:id="@+id/textViewDialogRole"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="Role: Admin"
-        android:textSize="16sp"
+        android:layout_marginTop="16dp"
+        android:text="Role:"
+        android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textViewEmail" />
+        app:layout_constraintTop_toBottomOf="@+id/textViewDialogEmailValue" />
 
     <TextView
-        android:id="@+id/textViewStatus"
+        android:id="@+id/textViewDialogRoleValue"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="Status: Active"
-        android:textSize="16sp"
+        android:layout_marginTop="4dp"
+        android:text="Customer"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textViewRole" />
+        app:layout_constraintTop_toBottomOf="@+id/textViewDialogRole" />
 
+    <TextView
+        android:id="@+id/textViewDialogStatus"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Status:"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewDialogRoleValue" />
+
+    <TextView
+        android:id="@+id/textViewDialogStatusValue"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="Active"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewDialogStatus" />
 
     <View
         android:id="@+id/divider"
@@ -58,39 +108,69 @@
         android:background="?android:attr/listDivider"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textViewStatus" />
+        app:layout_constraintTop_toBottomOf="@+id/textViewDialogStatusValue" />
 
-    <Button
-        android:id="@+id/buttonEdit"
+    <TextView
+        android:id="@+id/textViewDialogActions"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
-        android:backgroundTint="#2196F3"
-        android:text="Change Status"
-        android:textColor="@android:color/white"
-        android:visibility="visible"
-        app:layout_constraintEnd_toStartOf="@+id/buttonDelete"
+        android:text="Actions"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/divider" />
 
     <Button
-        android:id="@+id/buttonDelete"
+        android:id="@+id/buttonDialogBan"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
-        android:text="Delete"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="4dp"
+        android:text="Ban User"
+        android:textColor="@android:color/white"
+        android:backgroundTint="#FF5722"
+        app:layout_constraintEnd_toStartOf="@+id/buttonDialogDelete"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewDialogActions" />
+
+    <Button
+        android:id="@+id/buttonDialogActivate"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="4dp"
+        android:text="Activate User"
+        android:textColor="@android:color/white"
+        android:backgroundTint="#4CAF50"
+        app:layout_constraintEnd_toStartOf="@+id/buttonDialogDelete"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewDialogActions" />
+
+    <Button
+        android:id="@+id/buttonDialogDelete"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        android:text="Delete User"
         android:textColor="@android:color/white"
         android:backgroundTint="#F44336"
         android:drawableLeft="@android:drawable/ic_menu_delete"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
-        android:visibility="visible"
+        app:layout_constraintBottom_toBottomOf="@+id/buttonDialogBan"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/buttonEdit"
-        app:layout_constraintTop_toBottomOf="@+id/divider" />
+        app:layout_constraintStart_toEndOf="@+id/buttonDialogBan"
+        app:layout_constraintTop_toTopOf="@+id/buttonDialogBan" />
+
+    <Button
+        android:id="@+id/buttonDialogClose"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Close"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/buttonDialogBan" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
